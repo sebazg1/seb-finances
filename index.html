@@ -1134,6 +1134,19 @@ async function getIngPurchases() {
       source = source.map(e=>({...e, amount:Number(e.amount)||0, cost:Number(e.cost)||0, units:Number(e.units)||1}));
     }
     
+    // Map old note labels to ingredient keys
+    const LABEL_TO_KEY = {
+      'bananas':'bananas','banana':'bananas',
+      'harina':'harina','flour':'harina',
+      'butter':'butter','mantequilla':'butter',
+      'panela':'panela',
+      'canela':'canela','cinnamon':'canela',
+      'caja grande':'caja_grande',
+      'caja pequeña':'caja_pequena','caja pequena':'caja_pequena',
+      'sticker':'sticker',
+      'tarjeta':'tarjeta','card':'tarjeta'
+    };
+
     const parsed = [];
     source.forEach(e => {
       if (e.type !== 'expense') return;
@@ -1149,17 +1162,37 @@ async function getIngPurchases() {
         const qty = Number(parts[2]);
         const unit = parts[3].trim();
         if (ing && qty > 0) {
-          parsed.push({
-            id: e.id,
-            ingredient: ing,
-            qty,
-            unit,
-            cost: Number(e.amount),
-            date: String(e.date)
-          });
+          parsed.push({ id:e.id, ingredient:ing, qty, unit, cost:Number(e.amount), date:String(e.date) });
         }
+      } else {
+        // Old format: "Harina 2500g" or "Sticker 120 units" or "Canela 400g"
+        // Try to extract ingredient key, qty and unit from the note text
+        const lower = noteStr.toLowerCase().trim();
+        
+        // Find which ingredient this matches
+        let ingKey = null;
+        for (const [label, key] of Object.entries(LABEL_TO_KEY)) {
+          if (lower.startsWith(label)) {
+            ingKey = key;
+            break;
+          }
+        }
+        if (!ingKey) return;
+        
+        // Extract number and unit from the rest
+        // e.g. "2500g" → qty=2500, unit=g
+        // e.g. "120 units" → qty=120, unit=units
+        // e.g. "1kg" → qty=1, unit=kg
+        const rest = noteStr.slice(noteStr.toLowerCase().indexOf(ingKey === 'caja_grande' ? 'caja grande' : ingKey === 'caja_pequena' ? 'caja peque' : ingKey) + ingKey.replace('_',' ').length).trim();
+        const numMatch = rest.match(/([0-9]+\.?[0-9]*)\s*(kg|g|units|unit)?/i);
+        if (!numMatch) return;
+        
+        const qty = Number(numMatch[1]);
+        let unit = (numMatch[2] || 'g').toLowerCase(); if(unit === 'unit') unit = 'units';
+        if (qty <= 0) return;
+        
+        parsed.push({ id:e.id, ingredient:ingKey, qty, unit, cost:Number(e.amount), date:String(e.date) });
       }
-      // Old unstructured format — skip for recipe/inventory (no qty/unit info)
     });
     
     ingredientCache = parsed;
