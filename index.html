@@ -1209,11 +1209,6 @@ async function logIngredient() {
   if (!qty || !cost) { toast('Enter quantity and cost'); return; }
 
   const purchase = { id: Date.now(), ingredient, qty, unit, cost, date };
-  // Save to main entries sheet with structured note for recipe/inventory parsing
-  // Note format: "LABEL|ingredient_key|qty|unit"
-  invalidateIngCache();
-
-  // Also log as expense in main sheet
   const isPack = PACKAGING_ITEMS.includes(ingredient);
   // Structured note: "LABEL|key|qty|unit" — parsed by getIngPurchases() for recipe/inventory
   const structuredNote = ING_LABELS[ingredient] + '|' + ingredient + '|' + qty + '|' + (isPack ? 'units' : unit);
@@ -1232,7 +1227,8 @@ async function logIngredient() {
 
   btn.disabled = true; btn.textContent = 'Saving...';
   await insertEntry(entry);
-  entries.unshift(entry);
+  entries.unshift(entry);  // Add to entries FIRST
+  invalidateIngCache();    // THEN invalidate cache so getIngPurchases re-reads fresh entries
   btn.disabled = false; btn.textContent = 'Log purchase';
 
   document.getElementById('ing-qty').value = '';
