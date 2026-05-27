@@ -632,8 +632,10 @@ function gasCall(params){
 }
 
 async function apiCall(params){
+  // Add timestamp to bust any caching
+  params._t = Date.now();
   const url=GAS_URL+'?'+new URLSearchParams(params).toString();
-  const res=await fetch(url);
+  const res=await fetch(url, {cache:'no-store'});
   if(!res.ok)throw new Error('HTTP '+res.status);
   return res.json();
 }
@@ -1122,7 +1124,8 @@ function updateIngUnit(){
 let ingredientCache = null;
 
 async function getIngPurchases() {
-  if (ingredientCache !== null) return ingredientCache;
+  // Always fetch fresh — never use cache
+  ingredientCache = null;
   try {
     setSyncStatus('syncing');
     const allEntries = await apiCall({action:'get'});
@@ -1181,6 +1184,7 @@ async function getIngPurchases() {
         }
       }
     });
+    console.log('getIngPurchases: found', parsed.length, 'purchases:', JSON.stringify(parsed));
     ingredientCache = parsed;
   } catch(err) {
     console.error('getIngPurchases error:', err);
@@ -1390,7 +1394,8 @@ async function renderRecipe() {
 let sampleCache = null;
 
 async function getSamples() {
-  if (sampleCache !== null) return sampleCache;
+  // Always fetch fresh
+  sampleCache = null;
   try {
     const allEntries = await apiCall({action:'get'});
     sampleCache = allEntries
