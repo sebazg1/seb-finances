@@ -383,24 +383,46 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
 
 <!-- STOCK -->
 <div id="stock" class="section">
-  <div class="card" style="margin-bottom:12px">
-    <div class="card-title">Stock tracking from date</div>
-    <div class="form-group" style="margin-bottom:0">
-      <label>Only count entries from this date onwards</label>
-      <input type="date" id="stock-start-date" onchange="renderStock()">
-    </div>
-    <div style="font-size:11px;color:var(--corteza);margin-top:6px">Set to today after logging your current stock quantities above.</div>
-  </div>
+
   <div class="hero">
     <div class="hero-label">INVENTORY STATUS</div>
     <div class="hero-amount" id="inv-status" style="font-size:22px">Loading...</div>
-    <div class="hero-sub">Based on purchases, sales and samples</div>
+    <div class="hero-sub" id="inv-baseline-sub">Loading baseline...</div>
     <div class="hero-row">
       <div class="hero-stat"><div class="hs-lbl">IN STOCK</div><div class="hs-val hs-pos" id="inv-ok">0</div></div>
       <div class="hero-stat"><div class="hs-lbl">LOW</div><div class="hs-val" style="color:var(--warning)" id="inv-low">0</div></div>
       <div class="hero-stat"><div class="hs-lbl">OUT</div><div class="hs-val hs-neg" id="inv-out">0</div></div>
     </div>
   </div>
+
+  <div class="card"><div class="card-title">Ingredients stock</div><div id="inv-ingredients"><div class="empty">Loading...</div></div></div>
+  <div class="card"><div class="card-title">Packaging stock</div><div id="inv-packaging"><div class="empty">Loading...</div></div></div>
+
+  <div class="card" style="background:var(--miga);border:none">
+    <div class="card-title">Manual stock count</div>
+    <div style="font-size:12px;color:var(--corteza);margin-bottom:14px">Enter your physical count right now. This becomes the new baseline — all future sales, purchases and samples will be tracked from this point.</div>
+    <div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);margin-bottom:8px">INGREDIENTS</div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Bananas (g whole)</label><input type="number" id="bl-bananas" placeholder="0" inputmode="numeric"></div>
+      <div class="form-group"><label>Harina (g)</label><input type="number" id="bl-harina" placeholder="0" inputmode="numeric"></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Butter (g)</label><input type="number" id="bl-butter" placeholder="0" inputmode="numeric"></div>
+      <div class="form-group"><label>Panela (g)</label><input type="number" id="bl-panela" placeholder="0" inputmode="numeric"></div>
+    </div>
+    <div class="form-group"><label>Canela (g)</label><input type="number" id="bl-canela" placeholder="0" inputmode="numeric"></div>
+    <div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);margin:12px 0 8px">PACKAGING</div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Cajas Grandes (units)</label><input type="number" id="bl-caja_grande" placeholder="0" inputmode="numeric"></div>
+      <div class="form-group"><label>Cajas Pequeñas (units)</label><input type="number" id="bl-caja_pequena" placeholder="0" inputmode="numeric"></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Stickers (units)</label><input type="number" id="bl-sticker" placeholder="0" inputmode="numeric"></div>
+      <div class="form-group"><label>Tarjetas (units)</label><input type="number" id="bl-tarjeta" placeholder="0" inputmode="numeric"></div>
+    </div>
+    <button class="btn-primary" id="btn-baseline" onclick="saveBaseline()">Save stock count</button>
+  </div>
+
   <div class="card">
     <div class="card-title">Log sample (deducts from stock + logs cost)</div>
     <div class="form-row-2">
@@ -416,8 +438,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
     <div class="form-group"><label>Café name</label><input type="text" id="smp-note" placeholder="e.g. Patita Negra"></div>
     <button class="btn-primary btn-panela" id="btn-smp" onclick="logSample()">Log sample</button>
   </div>
-  <div class="card"><div class="card-title">Ingredients stock</div><div id="inv-ingredients"><div class="empty">Loading...</div></div></div>
-  <div class="card"><div class="card-title">Packaging stock</div><div id="inv-packaging"><div class="empty">Loading...</div></div></div>
+
 </div>
 
 <nav class="bottom-nav">
@@ -668,19 +689,12 @@ document.getElementById('s-date').value=today();
 document.getElementById('e-date').value=today();
 document.getElementById('ing-date').value=today();
 document.getElementById('smp-date').value=today();
-// Restore stock start date from localStorage
-const savedStartDate=localStorage.getItem('seb_stock_start');
-if(savedStartDate){
-  const el=document.getElementById('stock-start-date');
-  if(el) el.value=savedStartDate;
-}
-document.getElementById('stock-start-date').addEventListener('change',function(){
-  localStorage.setItem('seb_stock_start',this.value);
-});
+
 
 async function init(){
   autoFill();
   await loadEntries();
+  await loadBaseline();
   selectedMonth=today().slice(0,7);
   document.getElementById('month-btn').textContent=getMonthLabel(selectedMonth);
   const ls=document.getElementById('loading');
@@ -1070,26 +1084,101 @@ function renderRecipe(){
   }
 }
 
+// ── BASELINE ─────────────────────────────────────────────────────────────────
+let baseline = null; // { date, items: { bananas: 800, harina: 680, ... } }
+
+async function loadBaseline(){
+  try {
+    const data = await apiCall({action:'get', sheet:'baseline'});
+    if(data && data.length > 0){
+      const items = {};
+      data.forEach(row => { items[String(row.item)] = Number(row.qty); });
+      const date = String(data[0].date || today());
+      baseline = { date, items };
+      // Populate form fields
+      Object.keys(items).forEach(key => {
+        const el = document.getElementById('bl-'+key);
+        if(el) el.value = items[key];
+      });
+      document.getElementById('inv-baseline-sub').textContent =
+        'Baseline set on ' + date + ' · Sales and purchases tracked from this date';
+    } else {
+      baseline = null;
+      document.getElementById('inv-baseline-sub').textContent =
+        'No baseline set — enter your current stock count below';
+    }
+  } catch(err) {
+    baseline = null;
+    document.getElementById('inv-baseline-sub').textContent = 'Could not load baseline';
+  }
+}
+
+async function saveBaseline(){
+  const btn = document.getElementById('btn-baseline');
+  const allItems = [...ING_ITEMS, ...PACKAGING_ITEMS];
+  const items = {};
+  allItems.forEach(key => {
+    const el = document.getElementById('bl-'+key);
+    items[key] = el ? (Number(el.value)||0) : 0;
+  });
+  const date = today();
+  const rows = allItems.map(key => ({
+    id: key,
+    item: key,
+    qty: items[key],
+    unit: PACKAGING_ITEMS.includes(key) ? 'units' : 'g',
+    date,
+    note: 'Manual stock count'
+  }));
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    await apiCall({action:'replace_all', sheet:'baseline', data:JSON.stringify(rows)});
+    baseline = { date, items };
+    document.getElementById('inv-baseline-sub').textContent =
+      'Baseline set on ' + date + ' · Sales and purchases tracked from this date';
+    toast('Stock count saved — baseline updated');
+    renderStock();
+  } catch(err) {
+    toast('Save failed — check connection');
+  }
+  btn.disabled = false; btn.textContent = 'Save stock count';
+}
+
 // ── RENDER: STOCK ────────────────────────────────────────────────────────────
 function renderStock(){
-  // Get stock start date — only count entries from this date onwards
-  const startDateEl=document.getElementById('stock-start-date');
-  const startDate=startDateEl?startDateEl.value:'';
-  
-  const allPurchases=parseIngredientPurchases(entries);
-  const allSamples=parseSamples(entries);
-  const allSales=entries.filter(e=>e.type==='sale');
-  
-  // Filter by start date if set
-  const purchases=startDate?allPurchases.filter(p=>p.date>=startDate):allPurchases;
-  const samples=startDate?allSamples.filter(s=>s.date>=startDate):allSamples;
-  const salesFiltered=startDate?allSales.filter(e=>e.date>=startDate):allSales;
+  // If no baseline, show empty state
+  if(!baseline){
+    document.getElementById('inv-status').textContent = 'No baseline set';
+    document.getElementById('inv-status').style.color = 'var(--corteza)';
+    document.getElementById('inv-ok').textContent = '—';
+    document.getElementById('inv-low').textContent = '—';
+    document.getElementById('inv-out').textContent = '—';
+    document.getElementById('inv-ingredients').innerHTML = '<div class="empty">Enter your current stock count below and save it to start tracking.</div>';
+    document.getElementById('inv-packaging').innerHTML = '<div class="empty">Enter your current stock count below and save it to start tracking.</div>';
+    return;
+  }
 
-  // Calculate stock for each item
+  const baselineDate = baseline.date;
+  const baselineItems = baseline.items;
+
+  // Only count transactions AFTER baseline date
+  const purchases = parseIngredientPurchases(entries).filter(p => p.date > baselineDate);
+  const samples = parseSamples(entries).filter(s => s.date > baselineDate);
+  const salesFiltered = entries.filter(e => e.type==='sale' && e.date > baselineDate);
+
+  // Calculate stock starting from baseline quantities
   const stock={};
-  [...ING_ITEMS,...PACKAGING_ITEMS].forEach(ing=>stock[ing]=0);
+  [...ING_ITEMS,...PACKAGING_ITEMS].forEach(ing=>{
+    // Start from baseline, applying yield factor for ingredients
+    const baseQty = baselineItems[ing] || 0;
+    if(ING_ITEMS.includes(ing)){
+      stock[ing] = baseQty * (YIELD_FACTORS[ing]||1); // apply yield to baseline too
+    } else {
+      stock[ing] = baseQty;
+    }
+  });
 
-  // Add purchases
+  // Add purchases after baseline date
   purchases.forEach(p=>{
     const ing=p.ingredient;
     if(PACKAGING_ITEMS.includes(ing)){
