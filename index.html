@@ -385,14 +385,21 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
 <div id="stock" class="section">
 
   <div class="hero">
-    <div class="hero-label">INVENTORY STATUS</div>
-    <div class="hero-amount" id="inv-status" style="font-size:22px">Loading...</div>
-    <div class="hero-sub" id="inv-baseline-sub">Loading baseline...</div>
+    <div class="hero-label">WHAT YOU CAN BAKE RIGHT NOW</div>
     <div class="hero-row">
-      <div class="hero-stat"><div class="hs-lbl">IN STOCK</div><div class="hs-val hs-pos" id="inv-ok">0</div></div>
-      <div class="hero-stat"><div class="hs-lbl">LOW</div><div class="hs-val" style="color:var(--warning)" id="inv-low">0</div></div>
-      <div class="hero-stat"><div class="hs-lbl">OUT</div><div class="hs-val hs-neg" id="inv-out">0</div></div>
+      <div class="hero-stat" style="flex:1">
+        <div class="hs-lbl">PAN GRANDE</div>
+        <div class="hs-val" style="color:var(--panela);font-size:28px" id="inv-grande-count">—</div>
+        <div style="font-size:10px;color:var(--corteza);margin-top:3px">loaves ready</div>
+      </div>
+      <div class="hero-stat" style="flex:1">
+        <div class="hs-lbl">PAN PEQUEÑO</div>
+        <div class="hs-val" style="color:var(--panela);font-size:28px" id="inv-pequeno-count">—</div>
+        <div style="font-size:10px;color:var(--corteza);margin-top:3px">loaves ready</div>
+      </div>
     </div>
+    <div style="margin-top:14px;padding-top:12px;border-top:0.5px solid #2A2A28;font-size:11px;color:var(--corteza)" id="inv-limiting">—</div>
+    <div style="margin-top:8px;font-size:10px;color:#3A3830" id="inv-baseline-sub">No baseline set</div>
   </div>
 
   <div class="card"><div class="card-title">Ingredients stock</div><div id="inv-ingredients"><div class="empty">Loading...</div></div></div>
@@ -1232,13 +1239,45 @@ function renderStock(){
   const lowCount=allStatuses.filter(s=>s==='low').length;
   const outCount=allStatuses.filter(s=>s==='out').length;
 
-  const statusText=outCount>0?'Items out of stock':lowCount>0?'Some items running low':'All items in stock';
-  const statusColor2=outCount>0?'var(--danger)':lowCount>0?'var(--warning)':'var(--success)';
-  document.getElementById('inv-status').textContent=statusText;
-  document.getElementById('inv-status').style.color=statusColor2;
-  document.getElementById('inv-ok').textContent=okCount;
-  document.getElementById('inv-low').textContent=lowCount;
-  document.getElementById('inv-out').textContent=outCount;
+  // Calculate how many loaves of each type can be baked right now
+  function maxLoaves(product){
+    const recipe=RECIPE[product];
+    let max=Infinity;
+    let limitingIng=null;
+    Object.entries(recipe).forEach(([ing,qty])=>{
+      if(qty===0) return;
+      const available=Math.max(0,stock[ing]||0);
+      const possible=Math.floor(available/qty);
+      if(possible<max){max=possible;limitingIng=ing;}
+    });
+    return{count:max===Infinity?0:max,limiting:limitingIng};
+  }
+  const grandeResult=maxLoaves('grande');
+  const pequenoResult=maxLoaves('pequeno');
+
+  document.getElementById('inv-grande-count').textContent=grandeResult.count;
+  document.getElementById('inv-pequeno-count').textContent=pequenoResult.count;
+
+  // Limiting ingredient message
+  const limitingIng=grandeResult.limiting;
+  const limitingQty=limitingIng?Math.max(0,Math.round(stock[limitingIng]||0)):0;
+  const limitingNeeded=limitingIng?RECIPE.grande[limitingIng]:0;
+  const limitingEl=document.getElementById('inv-limiting');
+  if(grandeResult.count===0&&limitingIng){
+    const isPack=PACKAGING_ITEMS.includes(limitingIng);
+    const qtyStr=isPack?limitingQty+' units':limitingQty>=1000?(limitingQty/1000).toFixed(2)+'kg':limitingQty+'g';
+    const needStr=isPack?limitingNeeded+' units':limitingNeeded+'g';
+    limitingEl.innerHTML='Limiting: <span style="color:var(--danger)">'+(ING_LABELS[limitingIng]||limitingIng)+' — '+qtyStr+' left, need '+needStr+' per grande</span>';
+  } else if(grandeResult.count>0&&limitingIng){
+    const isPack=PACKAGING_ITEMS.includes(limitingIng);
+    const qtyStr=isPack?Math.max(0,Math.round(stock[limitingIng]||0))+' units':Math.max(0,Math.round(stock[limitingIng]||0))+'g';
+    limitingEl.innerHTML='Lowest stock: <span style="color:var(--warning)">'+(ING_LABELS[limitingIng]||limitingIng)+' — '+qtyStr+' remaining</span>';
+  } else {
+    limitingEl.textContent='All items stocked';
+  }
+
+  document.getElementById('inv-baseline-sub').textContent=
+    baseline?'Baseline set '+baseline.date+' · Tracking sales & purchases from this date':'No baseline set — enter stock count below';
 
   function renderRow(ing){
     const qty=stock[ing]||0;
