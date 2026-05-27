@@ -1126,27 +1126,45 @@ let ingredientCache = null;
 async function getIngPurchases() {
   if (ingredientCache !== null) return ingredientCache;
   try {
-    // Use already-loaded entries first, fallback to API
-    const source = entries.length > 0 ? entries : await apiCall({action:'get'});
-    ingredientCache = source
-      .filter(e => e.type === 'expense' && (e.category === 'ingredients' || e.category === 'packaging' || e.category === 'printing'))
-      .map(e => {
-        // Parse structured note: "LABEL|key|qty|unit"
-        const parts = String(e.note || '').split('|');
-        if (parts.length === 4) {
-          return {
+    // Always use current entries array — it's kept in sync by loadEntries and insertEntry
+    // If entries empty, fetch from API
+    let source = entries;
+    if (!source.length) {
+      source = await apiCall({action:'get'});
+      source = source.map(e=>({...e, amount:Number(e.amount)||0, cost:Number(e.cost)||0, units:Number(e.units)||1}));
+    }
+    
+    const parsed = [];
+    source.forEach(e => {
+      if (e.type !== 'expense') return;
+      const cat = String(e.category || '');
+      if (!['ingredients','packaging','printing'].includes(cat)) return;
+      
+      const noteStr = String(e.note || '');
+      const parts = noteStr.split('|');
+      
+      if (parts.length === 4) {
+        // New structured format: "LABEL|key|qty|unit"
+        const ing = parts[1].trim();
+        const qty = Number(parts[2]);
+        const unit = parts[3].trim();
+        if (ing && qty > 0) {
+          parsed.push({
             id: e.id,
-            ingredient: parts[1],
-            qty: Number(parts[2]),
-            unit: parts[3],
+            ingredient: ing,
+            qty,
+            unit,
             cost: Number(e.amount),
             date: String(e.date)
-          };
+          });
         }
-        return null; // old unstructured entries ignored for recipe/inventory
-      })
-      .filter(p => p !== null && p.ingredient);
+      }
+      // Old unstructured format — skip for recipe/inventory (no qty/unit info)
+    });
+    
+    ingredientCache = parsed;
   } catch(err) {
+    console.error('getIngPurchases error:', err);
     ingredientCache = [];
   }
   return ingredientCache;
@@ -1240,6 +1258,9 @@ async function logIngredient() {
 async function renderRecipe() {
   const purchases = await getIngPurchases();
   const pricesPerGram = getCurrentPricesPerGram(purchases);
+
+  // Debug: log what we found
+  console.log('Recipe tab — purchases found:', purchases.length, purchases);
 
   const grande  = await calcRealCost('grande');
   const pequeno = await calcRealCost('pequeno');
