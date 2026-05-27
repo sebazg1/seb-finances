@@ -1115,18 +1115,29 @@ function updateIngUnit(){
   }
 }
 
-// Ingredient purchases stored in localStorage (keyed separately from entries)
-function getIngPurchases() {
-  return JSON.parse(localStorage.getItem('seb_ingredients') || '[]');
+// Ingredient purchases — stored in Google Sheet 'ingredients' tab
+let ingredientCache = null;
+
+async function getIngPurchases() {
+  if (ingredientCache !== null) return ingredientCache;
+  try {
+    const data = await apiCall({action:'get', sheet:'ingredients'});
+    ingredientCache = Array.isArray(data) ? data.map(p => ({
+      ...p,
+      qty: Number(p.qty),
+      cost: Number(p.cost)
+    })) : [];
+  } catch(e) {
+    ingredientCache = JSON.parse(localStorage.getItem('seb_ingredients_backup') || '[]');
+  }
+  return ingredientCache;
 }
 
-function saveIngPurchases(data) {
-  localStorage.setItem('seb_ingredients', JSON.stringify(data));
-}
+function invalidateIngCache() { ingredientCache = null; }
 
 // Get latest price per unit (gram for ingredients, unit for packaging)
-function getCurrentPricesPerGram() {
-  const purchases = getIngPurchases();
+function getCurrentPricesPerGram(purchases) {
+  purchases = purchases || [];
   const latest = {};
   const sorted = [...purchases].sort((a,b) => a.date.localeCompare(b.date));
   sorted.forEach(p => {
@@ -1146,8 +1157,9 @@ function getCurrentPricesPerGram() {
 }
 
 // Calculate real cost per loaf (ingredients by gram, packaging by unit)
-function calcRealCost(product) {
-  const prices = getCurrentPricesPerGram();
+async function calcRealCost(product) {
+  const purchases = await getIngPurchases();
+  const prices = getCurrentPricesPerGram(purchases);
   const recipe = RECIPE[product];
   let total = 0;
   let complete = true;
@@ -1178,9 +1190,20 @@ async function logIngredient() {
   if (!qty || !cost) { toast('Enter quantity and cost'); return; }
 
   const purchase = { id: Date.now(), ingredient, qty, unit, cost, date };
-  const purchases = getIngPurchases();
-  purchases.push(purchase);
-  saveIngPurchases(purchases);
+  // Save to Google Sheet
+  try {
+    await apiCall({action:'insert', sheet:'ingredients', data:JSON.stringify(purchase)});
+    // Also backup locally
+    const backup = JSON.parse(localStorage.getItem('seb_ingredients_backup')||'[]');
+    backup.push(purchase);
+    localStorage.setItem('seb_ingredients_backup', JSON.stringify(backup));
+  } catch(e) {
+    const backup = JSON.parse(localStorage.getItem('seb_ingredients_backup')||'[]');
+    backup.push(purchase);
+    localStorage.setItem('seb_ingredients_backup', JSON.stringify(backup));
+    toast('Saved locally — sync when online');
+  }
+  invalidateIngCache();
 
   // Also log as expense in main sheet
   const isPack = PACKAGING_ITEMS.includes(ingredient);
@@ -1205,15 +1228,15 @@ async function logIngredient() {
   document.getElementById('ing-qty').value = '';
   document.getElementById('ing-cost').value = '';
   toast('Logged — ' + ING_LABELS[ingredient] + ' ' + qty + unit + ' for ' + fmt(cost));
-  renderRecipe();
+  await renderRecipe();
 }
 
-function renderRecipe() {
-  const purchases = getIngPurchases();
-  const pricesPerGram = getCurrentPricesPerGram();
+async function renderRecipe() {
+  const purchases = await getIngPurchases();
+  const pricesPerGram = getCurrentPricesPerGram(purchases);
 
-  const grande  = calcRealCost('grande');
-  const pequeno = calcRealCost('pequeno');
+  const grande  = await calcRealCost('grande');
+  const pequeno = await calcRealCost('pequeno');
 
   // Hero
   if (grande.complete) {
@@ -1316,13 +1339,24 @@ function renderRecipe() {
 
 // ── INVENTORY ────────────────────────────────────────────────────────────────
 
-// Samples stored in localStorage
-function getSamples() {
-  return JSON.parse(localStorage.getItem('seb_samples') || '[]');
+// Samples — stored in Google Sheet 'samples' tab
+let sampleCache = null;
+
+async function getSamples() {
+  if (sampleCache !== null) return sampleCache;
+  try {
+    const data = await apiCall({action:'get', sheet:'samples'});
+    sampleCache = Array.isArray(data) ? data.map(s => ({
+      ...s,
+      units: Number(s.units)
+    })) : [];
+  } catch(e) {
+    sampleCache = JSON.parse(localStorage.getItem('seb_samples_backup') || '[]');
+  }
+  return sampleCache;
 }
-function saveSamples(data) {
-  localStorage.setItem('seb_samples', JSON.stringify(data));
-}
+
+function invalidateSampleCache() { sampleCache = null; }
 
 document.getElementById('smp-date').value = today();
 
@@ -1337,11 +1371,19 @@ async function logSample() {
   const costPerUnit = product === 'grande' ? 13795 : 6077;
   const totalCost = costPerUnit * units;
 
-  // Save sample record locally
+  // Save sample to Google Sheet
   const sample = { id: Date.now(), product, units, date, note };
-  const samples = getSamples();
-  samples.push(sample);
-  saveSamples(samples);
+  try {
+    await apiCall({action:'insert', sheet:'samples', data:JSON.stringify(sample)});
+    const backup = JSON.parse(localStorage.getItem('seb_samples_backup')||'[]');
+    backup.push(sample);
+    localStorage.setItem('seb_samples_backup', JSON.stringify(backup));
+  } catch(e) {
+    const backup = JSON.parse(localStorage.getItem('seb_samples_backup')||'[]');
+    backup.push(sample);
+    localStorage.setItem('seb_samples_backup', JSON.stringify(backup));
+  }
+  invalidateSampleCache();
 
   // Log as expense in main ledger
   const entry = {
@@ -1365,12 +1407,12 @@ async function logSample() {
   document.getElementById('smp-units').value = 1;
   document.getElementById('smp-note').value = '';
   toast('Sample logged — ' + units + ' ' + (product === 'grande' ? 'Pan Grande' : 'Pan Pequeño') + ' · ' + fmt(totalCost));
-  renderInventory();
+  await renderInventory();
 }
 
-function calcInventory() {
-  const purchases = getIngPurchases();
-  const samples = getSamples();
+async function calcInventory() {
+  const purchases = await getIngPurchases();
+  const samples = await getSamples();
   const allItems = [...ING_ITEMS, ...PACKAGING_ITEMS];
 
   // Start with all purchases
@@ -1443,8 +1485,8 @@ function formatStock(ing, qty) {
   return Math.round(qty) + ' g';
 }
 
-function renderInventory() {
-  const stock = calcInventory();
+async function renderInventory() {
+  const stock = await calcInventory();
   const allStatuses = Object.keys(stock).map(ing => stockStatus(ing, stock[ing]));
   const okCount  = allStatuses.filter(s=>s==='ok').length;
   const lowCount = allStatuses.filter(s=>s==='low').length;
