@@ -740,8 +740,8 @@ function switchTab(tab,btn){
   if(tab==='history')renderHistory();
   if(tab==='insights')renderInsights();
   if(tab==='costs')renderCosts();
-  if(tab==='recipe')renderRecipe();
-  if(tab==='inventory')renderInventory();
+  if(tab==='recipe')renderRecipe().catch(console.error);
+  if(tab==='inventory')renderInventory().catch(console.error);
 }
 
 function getMonths(){
@@ -848,8 +848,8 @@ function renderAll(){
   if(t==='history')renderHistory();
   if(t==='insights')renderInsights();
   if(t==='costs')renderCosts();
-  if(t==='recipe')renderRecipe();
-  if(t==='inventory')renderInventory();
+  if(t==='recipe')renderRecipe().catch(console.error);
+  if(t==='inventory')renderInventory().catch(console.error);
 }
 
 function renderOverview(){
@@ -1500,7 +1500,7 @@ async function renderInventory() {
   document.getElementById('inv-low').textContent = lowCount;
   document.getElementById('inv-out').textContent = outCount;
 
-  const purchases = getIngPurchases();
+  const purchases = await getIngPurchases();
 
   function renderStockRow(ing) {
     const qty = stock[ing] || 0;
