@@ -1118,86 +1118,73 @@ function updateIngUnit(){
   }
 }
 
-// Ingredient purchases — read from main entries sheet
-// category = 'ingredients' or 'packaging'
-// note format: "LABEL|ingredient_key|qty|unit" e.g. "Bananas|bananas|1000|g"
+// Ingredient purchases — always fetch fresh from Google Sheet
 let ingredientCache = null;
 
 async function getIngPurchases() {
   if (ingredientCache !== null) return ingredientCache;
   try {
-    // Always use current entries array — it's kept in sync by loadEntries and insertEntry
-    // If entries empty, fetch from API
-    let source = entries;
-    if (!source.length) {
-      source = await apiCall({action:'get'});
-      source = source.map(e=>({...e, amount:Number(e.amount)||0, cost:Number(e.cost)||0, units:Number(e.units)||1}));
-    }
-    
-    // Map old note labels to ingredient keys
+    setSyncStatus('syncing');
+    const allEntries = await apiCall({action:'get'});
+    setSyncStatus('ok');
+
     const LABEL_TO_KEY = {
       'bananas':'bananas','banana':'bananas',
       'harina':'harina','flour':'harina',
       'butter':'butter','mantequilla':'butter',
       'panela':'panela',
-      'canela':'canela','cinnamon':'canela',
+      'canela':'canela',
       'caja grande':'caja_grande',
       'caja pequeña':'caja_pequena','caja pequena':'caja_pequena',
       'sticker':'sticker',
-      'tarjeta':'tarjeta','card':'tarjeta'
+      'tarjeta':'tarjeta'
     };
 
     const parsed = [];
-    source.forEach(e => {
+    allEntries.forEach(e => {
       if (e.type !== 'expense') return;
-      const cat = String(e.category || '');
+      const cat = String(e.category || '').toLowerCase();
       if (!['ingredients','packaging','printing'].includes(cat)) return;
-      
-      const noteStr = String(e.note || '');
+
+      const noteStr = String(e.note || '').trim();
       const parts = noteStr.split('|');
-      
-      if (parts.length === 4) {
+
+      if (parts.length >= 4) {
         // New structured format: "LABEL|key|qty|unit"
         const ing = parts[1].trim();
         const qty = Number(parts[2]);
         const unit = parts[3].trim();
         if (ing && qty > 0) {
-          parsed.push({ id:e.id, ingredient:ing, qty, unit, cost:Number(e.amount), date:String(e.date) });
+          parsed.push({ id:e.id, ingredient:ing, qty, unit, cost:Number(e.amount)||0, date:String(e.date) });
         }
       } else {
-        // Old format: "Harina 2500g" or "Sticker 120 units" or "Canela 400g"
-        // Try to extract ingredient key, qty and unit from the note text
-        const lower = noteStr.toLowerCase().trim();
-        
-        // Find which ingredient this matches
+        // Old format: "Canela 400g" / "Sticker 120 units"
+        const lower = noteStr.toLowerCase();
         let ingKey = null;
+        let labelLen = 0;
         for (const [label, key] of Object.entries(LABEL_TO_KEY)) {
           if (lower.startsWith(label)) {
             ingKey = key;
+            labelLen = label.length;
             break;
           }
         }
         if (!ingKey) return;
-        
-        // Extract number and unit from the rest
-        // e.g. "2500g" → qty=2500, unit=g
-        // e.g. "120 units" → qty=120, unit=units
-        // e.g. "1kg" → qty=1, unit=kg
-        const rest = noteStr.slice(noteStr.toLowerCase().indexOf(ingKey === 'caja_grande' ? 'caja grande' : ingKey === 'caja_pequena' ? 'caja peque' : ingKey) + ingKey.replace('_',' ').length).trim();
-        const numMatch = rest.match(/([0-9]+\.?[0-9]*)\s*(kg|g|units|unit)?/i);
-        if (!numMatch) return;
-        
-        const qty = Number(numMatch[1]);
-        let unit = (numMatch[2] || 'g').toLowerCase(); if(unit === 'unit') unit = 'units';
-        if (qty <= 0) return;
-        
-        parsed.push({ id:e.id, ingredient:ingKey, qty, unit, cost:Number(e.amount), date:String(e.date) });
+        const rest = noteStr.slice(labelLen).trim();
+        const m = rest.match(/([0-9]+\.?[0-9]*)\s*(kg|g|units|unit)?/i);
+        if (!m) return;
+        const qty = Number(m[1]);
+        let unit = (m[2] || 'g').toLowerCase();
+        if (unit === 'unit') unit = 'units';
+        if (qty > 0) {
+          parsed.push({ id:e.id, ingredient:ingKey, qty, unit, cost:Number(e.amount)||0, date:String(e.date) });
+        }
       }
     });
-    
     ingredientCache = parsed;
   } catch(err) {
     console.error('getIngPurchases error:', err);
+    setSyncStatus('err');
     ingredientCache = [];
   }
   return ingredientCache;
@@ -1399,32 +1386,32 @@ async function renderRecipe() {
 
 // ── INVENTORY ────────────────────────────────────────────────────────────────
 
-// Samples — read from main entries sheet
-// category = 'samples', note format: "Sample Pan Grande|grande|1" or "Sample Pan Pequeño|pequeno|1"
+// Samples — always fetch fresh from Google Sheet
 let sampleCache = null;
 
 async function getSamples() {
   if (sampleCache !== null) return sampleCache;
   try {
-    const source = entries.length > 0 ? entries : await apiCall({action:'get'});
-    sampleCache = source
-      .filter(e => e.type === 'expense' && e.category === 'samples')
+    const allEntries = await apiCall({action:'get'});
+    sampleCache = allEntries
+      .filter(e => e.type === 'expense' && String(e.category||'').toLowerCase() === 'samples')
       .map(e => {
-        // Parse structured note: "label|product|units"
-        const parts = String(e.note || '').split('|');
+        const noteStr = String(e.note || '');
+        const parts = noteStr.split('|');
         if (parts.length === 3) {
-          return {
-            id: e.id,
-            product: parts[1], // 'grande' or 'pequeno'
-            units: Number(parts[2]),
-            date: String(e.date),
-            note: parts[0]
-          };
+          // New structured: "label|product|units"
+          return { id:e.id, product:parts[1].trim(), units:Number(parts[2]), date:String(e.date), note:parts[0] };
         }
-        return null;
+        // Old format — try to guess product from note
+        const lower = noteStr.toLowerCase();
+        const product = lower.includes('grande') ? 'grande' : 'pequeno';
+        const m = noteStr.match(/(\d+)/);
+        const units = m ? Number(m[1]) : 1;
+        return { id:e.id, product, units, date:String(e.date), note:noteStr };
       })
-      .filter(s => s !== null && s.product);
+      .filter(s => s && s.product);
   } catch(err) {
+    console.error('getSamples error:', err);
     sampleCache = [];
   }
   return sampleCache;
