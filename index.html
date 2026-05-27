@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SEB">
+<title>SEB — Finanzas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --obsidian:#1A1A18;--masa:#F5F0E8;--panela:#C4A882;--corteza:#7A7060;
+  --harina:#C8BFA8;--miga:#EDE8DC;--success:#2a9d6e;--danger:#c94040;
+  --info:#3266ad;--warning:#e09f3e;--safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html{height:100%;background:var(--masa)}
+body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsidian);min-height:100vh;padding-bottom:calc(72px + var(--safe-bottom));overflow-x:hidden}
+.topbar{position:sticky;top:0;z-index:100;background:var(--obsidian);padding:env(safe-area-inset-top,0) 20px 0;height:calc(56px + env(safe-area-inset-top,0))}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;width:100%;height:56px}
+.logo{font-family:'Playfair Display',serif;font-size:22px;letter-spacing:0.2em;color:var(--masa)}
+.logo-sub{font-size:8px;letter-spacing:0.25em;color:var(--corteza);margin-top:-2px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.month-pill{background:#2A2A28;border:none;border-radius:20px;padding:6px 14px;font-family:'Montserrat',sans-serif;font-size:12px;color:var(--panela);letter-spacing:0.05em;cursor:pointer}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--corteza);flex-shrink:0;transition:background 0.3s}
+.sync-dot.syncing{background:var(--warning);animation:pulse 1s infinite}
+.sync-dot.ok{background:var(--success)}
+.sync-dot.err{background:var(--danger)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--obsidian);border-top:0.5px solid #2A2A28;padding-bottom:var(--safe-bottom);display:flex}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0;border:none;background:none;cursor:pointer;color:var(--corteza);font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:0.05em;transition:color 0.15s}
+.nav-btn svg{width:22px;height:22px}
+.nav-btn.active{color:var(--panela)}
+.section{display:none;padding:16px;animation:fadeIn 0.2s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.hero{background:var(--obsidian);border-radius:16px;padding:20px;margin-bottom:14px}
+.hero-label{font-size:10px;letter-spacing:0.2em;color:var(--corteza);margin-bottom:6px}
+.hero-amount{font-family:'Playfair Display',serif;font-size:36px;color:var(--masa);line-height:1}
+.hero-sub{font-size:12px;color:var(--corteza);margin-top:6px}
+.hero-row{display:flex;gap:12px;margin-top:16px}
+.hero-stat{flex:1;background:#2A2A28;border-radius:10px;padding:12px}
+.hs-lbl{font-size:10px;letter-spacing:0.1em;color:var(--corteza);margin-bottom:4px}
+.hs-val{font-size:16px;font-weight:500}
+.hs-pos{color:var(--success)}.hs-neg{color:var(--danger)}.hs-neutral{color:var(--masa)}
+.tbar-wrap{margin-top:14px}
+.tbar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--corteza);margin-bottom:5px}
+.tbar{background:#2A2A28;border-radius:4px;height:5px;overflow:hidden}
+.tbar-fill{height:100%;border-radius:4px;background:var(--panela);transition:width 0.5s}
+.card{background:white;border:0.5px solid var(--harina);border-radius:14px;padding:16px;margin-bottom:12px}
+.card-title{font-size:11px;font-weight:500;letter-spacing:0.1em;color:var(--corteza);margin-bottom:14px;text-transform:uppercase}
+.metrics-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.metric-tile{background:white;border:0.5px solid var(--harina);border-radius:12px;padding:14px}
+.mt-lbl{font-size:10px;letter-spacing:0.08em;color:var(--corteza);margin-bottom:4px}
+.mt-val{font-size:18px;font-weight:500;color:var(--obsidian)}
+.mt-val.pos{color:var(--success)}.mt-val.neg{color:var(--danger)}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:11px;letter-spacing:0.08em;color:var(--corteza);margin-bottom:5px}
+.form-group input,.form-group select{width:100%;padding:13px 14px;background:var(--miga);border:0.5px solid var(--harina);border-radius:10px;font-family:'Montserrat',sans-serif;font-size:15px;color:var(--obsidian);outline:none;-webkit-appearance:none;appearance:none}
+.form-group select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A7060' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-primary{width:100%;padding:16px;background:var(--obsidian);color:var(--masa);border:none;border-radius:12px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:500;letter-spacing:0.08em;cursor:pointer;margin-top:4px;transition:transform 0.1s,opacity 0.15s}
+.btn-primary:active{transform:scale(0.98)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed}
+.btn-panela{background:var(--panela);color:var(--obsidian)}
+.segment{display:flex;background:var(--miga);border-radius:10px;padding:3px;margin-bottom:16px}
+.seg-btn{flex:1;padding:8px;border:none;background:none;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:12px;color:var(--corteza);cursor:pointer;transition:all 0.15s}
+.seg-btn.active{background:var(--obsidian);color:var(--masa)}
+.entry-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:0.5px solid var(--miga)}
+.entry-item:last-child{border-bottom:none}
+.entry-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-grande{background:#3266ad}.dot-pequeno{background:#2a9d6e}
+.dot-wholesale{background:#e09f3e}.dot-expense{background:#c94040}
+.entry-info{flex:1;min-width:0}
+.entry-name{font-size:13px;color:var(--obsidian);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry-meta{font-size:11px;color:var(--corteza);margin-top:2px}
+.entry-amount{font-size:14px;font-weight:500;white-space:nowrap}
+.e-pos{color:var(--success)}.e-neg{color:var(--danger)}
+.btn-del{background:none;border:none;color:var(--harina);font-size:20px;padding:4px 8px;cursor:pointer}
+.insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.insight-tile{background:var(--obsidian);border-radius:12px;padding:14px}
+.it-lbl{font-size:10px;letter-spacing:0.1em;color:var(--corteza);margin-bottom:5px}
+.it-val{font-size:18px;font-weight:500;color:var(--masa)}
+.it-sub{font-size:10px;color:var(--corteza);margin-top:3px}
+.chart-wrap{position:relative;width:100%}
+.price-ref{background:var(--miga);border-radius:12px;padding:14px;margin-bottom:12px}
+.price-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--harina);font-size:13px}
+.price-row:last-child{border-bottom:none}
+.price-name{color:var(--corteza)}.price-val{font-weight:500}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.legend span{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--corteza)}
+.ldot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.empty{text-align:center;padding:2rem 1rem;color:var(--corteza);font-size:13px}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.entries-scroll{max-height:340px;overflow-y:auto}
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--obsidian);color:var(--masa);padding:11px 22px;border-radius:20px;font-size:13px;opacity:0;transition:all 0.25s;pointer-events:none;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.15)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end}
+.modal-bg.open{display:flex}
+.modal{background:var(--masa);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-bottom));width:100%;max-height:60vh;overflow-y:auto}
+.modal-title{font-size:13px;font-weight:500;color:var(--corteza);letter-spacing:0.1em;margin-bottom:14px;text-align:center}
+.modal-option{display:block;width:100%;padding:14px;text-align:left;border:none;background:none;font-family:'Montserrat',sans-serif;font-size:15px;color:var(--obsidian);border-bottom:0.5px solid var(--harina);cursor:pointer}
+.modal-option.active{color:var(--panela);font-weight:500}
+.modal-cancel{display:block;width:100%;margin-top:10px;padding:14px;text-align:center;background:var(--miga);border:none;border-radius:12px;font-family:'Montserrat',sans-serif;font-size:14px;color:var(--obsidian);cursor:pointer}
+.loading-screen{position:fixed;inset:0;background:var(--obsidian);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;transition:opacity 0.4s}
+.loading-logo{font-family:'Playfair Display',serif;font-size:48px;letter-spacing:0.2em;color:var(--masa);margin-bottom:8px}
+.loading-sub{font-size:9px;letter-spacing:0.3em;color:var(--corteza);margin-bottom:32px}
+.loading-spinner{width:24px;height:24px;border:2px solid #2A2A28;border-top-color:var(--panela);border-radius:50%;animation:spin 0.8s linear infinite}
+.loading-msg{font-size:11px;color:var(--corteza);margin-top:16px;letter-spacing:0.1em}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loading">
+  <div class="loading-logo">S E B</div>
+  <div class="loading-sub">EST. MEDELLÍN</div>
+  <div class="loading-spinner"></div>
+  <div class="loading-msg" id="loading-msg">Loading your data...</div>
+</div>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div>
+      <div class="logo">S E B</div>
+      <div class="logo-sub">EST. MEDELLÍN</div>
+    </div>
+    <div class="topbar-right">
+      <div class="sync-dot" id="sync-dot"></div>
+      <button class="month-pill" id="month-btn" onclick="openMonthModal()">—</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG -->
+<div id="log" class="section active">
+  <div class="segment">
+    <button class="seg-btn active" onclick="switchForm('sale',this)">Sale</button>
+    <button class="seg-btn" onclick="switchForm('expense',this)">Expense</button>
+    <button class="seg-btn" onclick="switchForm('prices',this)">Prices</button>
+  </div>
+  <div id="form-sale">
+    <div class="card">
+      <div class="card-title">New sale</div>
+      <div class="form-group"><label>Product</label>
+        <select id="s-product" onchange="autoFill()">
+          <option value="grande_retail">Pan Grande — retail $40,000</option>
+          <option value="pequeno_retail">Pan Pequeño — retail $20,000</option>
+          <option value="grande_wholesale">Pan Grande — wholesale $38,000</option>
+          <option value="pequeno_wholesale">Pan Pequeño — wholesale $18,000</option>
+        </select>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group"><label>Units</label><input type="number" id="s-units" min="1" value="1" inputmode="numeric" oninput="autoFill()"></div>
+        <div class="form-group"><label>Revenue (COP)</label><input type="number" id="s-amount" inputmode="numeric"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group"><label>Channel</label>
+          <select id="s-channel">
+            <option value="whatsapp">WhatsApp</option>
+            <option value="cafe">Café</option>
+            <option value="referral">Referral</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Date</label><input type="date" id="s-date"></div>
+      </div>
+      <div class="form-group"><label>Note (optional)</label><input type="text" id="s-note" placeholder="e.g. Café Morelia"></div>
+      <button class="btn-primary btn-panela" id="btn-sale" onclick="logSale()">Log sale</button>
+    </div>
+  </div>
+  <div id="form-expense" style="display:none">
+    <div class="card">
+      <div class="card-title">New expense</div>
+      <div class="form-row-2">
+        <div class="form-group"><label>Category</label>
+          <select id="e-cat">
+            <option value="ingredients">Ingredients</option>
+            <option value="packaging">Packaging</option>
+            <option value="printing">Printing</option>
+            <option value="transport">Transport</option>
+            <option value="samples">Samples</option>
+            <option value="gas">Gas / electricity</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Date</label><input type="date" id="e-date"></div>
+      </div>
+      <div class="form-group"><label>Amount (COP)</label><input type="number" id="e-amount" placeholder="0" inputmode="numeric"></div>
+      <div class="form-group"><label>Note (optional)</label><input type="text" id="e-note" placeholder="e.g. Bananas 2kg"></div>
+      <button class="btn-primary" id="btn-expense" onclick="logExpense()">Log expense</button>
+    </div>
+  </div>
+  <div id="form-prices" style="display:none">
+    <div class="price-ref">
+      <div class="card-title" style="margin-bottom:10px">Pricing reference</div>
+      <div class="price-row"><span class="price-name">Pan Grande retail</span><span class="price-val">$40,000</span></div>
+      <div class="price-row"><span class="price-name">Pan Grande wholesale</span><span class="price-val">$38,000</span></div>
+      <div class="price-row"><span class="price-name">Pan Pequeño retail</span><span class="price-val">$20,000</span></div>
+      <div class="price-row"><span class="price-name">Pan Pequeño wholesale</span><span class="price-val">$18,000</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Monthly targets</div>
+      <div class="form-group"><label>Revenue target (COP)</label><input type="number" id="t-revenue" value="1500000" inputmode="numeric"></div>
+      <div class="form-group"><label>Profit target (COP)</label><input type="number" id="t-profit" value="1000000" inputmode="numeric"></div>
+    </div>
+    <div class="card" style="background:var(--miga);border:none">
+      <div class="card-title">Cost included in COGS per unit</div>
+      <div class="price-row"><span class="price-name">Ingredients</span><span class="price-val" style="color:var(--corteza)">Excluded from exp</span></div>
+      <div class="price-row"><span class="price-name">Packaging (box)</span><span class="price-val" style="color:var(--corteza)">Excluded from exp</span></div>
+      <div class="price-row"><span class="price-name">Printing (sticker)</span><span class="price-val" style="color:var(--corteza)">Excluded from exp</span></div>
+      <div class="price-row"><span class="price-name">Transport / samples / gas</span><span class="price-val" style="color:var(--danger)">Subtracted</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<div id="overview" class="section">
+  <div class="hero">
+    <div class="hero-label">REVENUE THIS MONTH</div>
+    <div class="hero-amount" id="hero-rev">$0</div>
+    <div class="hero-sub" id="hero-sub">0 transactions</div>
+    <div class="hero-row">
+      <div class="hero-stat"><div class="hs-lbl">PROFIT</div><div class="hs-val hs-pos" id="hero-profit">$0</div></div>
+      <div class="hero-stat"><div class="hs-lbl">MARGIN</div><div class="hs-val hs-neutral" id="hero-margin">0%</div></div>
+      <div class="hero-stat"><div class="hs-lbl">EXPENSES</div><div class="hs-val hs-neg" id="hero-exp">$0</div></div>
+    </div>
+    <div class="tbar-wrap">
+      <div class="tbar-label"><span>Revenue target</span><span id="tbar-pct">0%</span></div>
+      <div class="tbar"><div class="tbar-fill" id="tbar-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="metrics-2">
+    <div class="metric-tile"><div class="mt-lbl">UNITS SOLD</div><div class="mt-val" id="ov-units">0</div></div>
+    <div class="metric-tile"><div class="mt-lbl">AVG SALE</div><div class="mt-val" id="ov-avg">—</div></div>
+    <div class="metric-tile"><div class="mt-lbl">COGS</div><div class="mt-val neg" id="ov-cogs">$0</div></div>
+    <div class="metric-tile"><div class="mt-lbl">CAFÉ REVENUE</div><div class="mt-val pos" id="ov-cafe">$0</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Daily revenue</div>
+    <div class="legend">
+      <span><span class="ldot" style="background:#3266ad"></span>Revenue</span>
+      <span><span class="ldot" style="background:#c94040"></span>Expenses</span>
+    </div>
+    <div class="chart-wrap" style="height:180px"><canvas id="daily-chart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Sales by product</div>
+    <div class="chart-wrap" style="height:180px"><canvas id="product-chart"></canvas></div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="history" class="section">
+  <div class="card">
+    <div class="card-title">Month to month</div>
+    <div class="legend">
+      <span><span class="ldot" style="background:#3266ad"></span>Revenue</span>
+      <span><span class="ldot" style="background:#2a9d6e"></span>Profit</span>
+    </div>
+    <div class="chart-wrap" style="height:180px"><canvas id="monthly-chart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">All entries</div>
+    <div class="entries-scroll" id="all-entries">
+      <div class="empty"><div class="empty-icon">📋</div>No entries yet.</div>
+    </div>
+  </div>
+</div>
+
+<!-- INSIGHTS -->
+<div id="insights" class="section">
+  <div class="insight-grid" id="insight-tiles"></div>
+  <div class="card">
+    <div class="card-title">Revenue by channel</div>
+    <div class="chart-wrap" style="height:180px"><canvas id="channel-chart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Margin vs 65% target</div>
+    <div class="legend">
+      <span><span class="ldot" style="background:#3266ad"></span>Margin</span>
+      <span><span class="ldot" style="background:#c94040"></span>Target 65%</span>
+    </div>
+    <div class="chart-wrap" style="height:180px"><canvas id="margin-chart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Expenses breakdown</div>
+    <div class="chart-wrap" style="height:180px"><canvas id="expense-chart"></canvas></div>
+  </div>
+</div>
+
+<!-- COSTS -->
+<div id="costs" class="section">
+  <div class="hero">
+    <div class="hero-label">CASH SPENT THIS MONTH</div>
+    <div class="hero-amount" id="c-total-cash">$0</div>
+    <div class="hero-sub" id="c-total-sub">COGS + operational expenses</div>
+    <div class="hero-row">
+      <div class="hero-stat"><div class="hs-lbl">COGS</div><div class="hs-val hs-neg" id="c-cogs">$0</div></div>
+      <div class="hero-stat"><div class="hs-lbl">PURCHASES</div><div class="hs-val hs-neg" id="c-purchases">$0</div></div>
+      <div class="hero-stat"><div class="hs-lbl">OPERATIONS</div><div class="hs-val hs-neg" id="c-ops">$0</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">COGS breakdown — auto calculated per unit sold</div>
+    <div id="c-cogs-breakdown"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Raw material purchases logged</div>
+    <div id="c-purchases-breakdown"></div>
+    <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--harina)">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+        <span style="color:var(--corteza)">COGS used (from sales)</span>
+        <span id="c-cogs-used" style="font-weight:500">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+        <span style="color:var(--corteza)">Raw purchases logged</span>
+        <span id="c-raw-logged" style="font-weight:500">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding-top:8px;border-top:0.5px solid var(--miga)">
+        <span style="color:var(--corteza)">Inventory buffer est.</span>
+        <span id="c-buffer" style="font-weight:500;color:var(--success)">$0</span>
+      </div>
+      <div style="font-size:10px;color:var(--corteza);margin-top:6px;font-style:italic">Positive = you have stock ahead of sales. Negative = you may be understocked.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Operational expenses (not in COGS)</div>
+    <div id="c-ops-breakdown"></div>
+  </div>
+
+  <div class="card" style="background:var(--obsidian);border-color:var(--obsidian)">
+    <div class="card-title" style="color:var(--corteza)">Full cost summary</div>
+    <div style="font-size:13px">
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28">
+        <span style="color:var(--corteza)">Revenue</span><span id="cs-rev" style="color:var(--masa);font-weight:500">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28">
+        <span style="color:var(--corteza)">Auto COGS (per unit)</span><span id="cs-cogs" style="color:var(--danger)">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28">
+        <span style="color:var(--corteza)">Gross profit</span><span id="cs-gross" style="color:var(--panela)">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28">
+        <span style="color:var(--corteza)">Operational expenses</span><span id="cs-ops" style="color:var(--danger)">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0">
+        <span style="color:var(--masa);font-weight:500">Net profit</span><span id="cs-profit" style="color:var(--success);font-weight:500;font-size:16px">$0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECIPE -->
+<div id="recipe" class="section">
+
+  <div class="hero">
+    <div class="hero-label">REAL COST PER LOAF — TODAY'S PRICES</div>
+    <div style="display:flex;gap:12px;margin-top:8px">
+      <div class="hero-stat" style="flex:1">
+        <div class="hs-lbl">PAN GRANDE</div>
+        <div class="hs-val hs-neg" id="r-cost-grande">$—</div>
+        <div style="font-size:10px;color:var(--corteza);margin-top:3px" id="r-margin-grande">margin —</div>
+      </div>
+      <div class="hero-stat" style="flex:1">
+        <div class="hs-lbl">PAN PEQUEÑO</div>
+        <div class="hs-val hs-neg" id="r-cost-pequeno">$—</div>
+        <div style="font-size:10px;color:var(--corteza);margin-top:3px" id="r-margin-pequeno">margin —</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Log ingredient purchase</div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Ingredient</label>
+        <select id="ing-name" onchange="updateIngUnit()">
+          <optgroup label="Ingredients">
+            <option value="bananas">Bananas</option>
+            <option value="harina">Harina</option>
+            <option value="butter">Butter</option>
+            <option value="panela">Panela</option>
+            <option value="canela">Canela</option>
+          </optgroup>
+          <optgroup label="Packaging">
+            <option value="caja_grande">Caja Grande</option>
+            <option value="caja_pequena">Caja Pequeña</option>
+            <option value="sticker">Sticker</option>
+            <option value="tarjeta">Tarjeta (card)</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group"><label>Date</label><input type="date" id="ing-date"></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group"><label id="ing-qty-label">Quantity bought (g or kg)</label><input type="number" id="ing-qty" placeholder="e.g. 1000" inputmode="numeric"></div>
+      <div class="form-group"><label>Unit</label>
+        <select id="ing-unit">
+          <option value="g">Grams (g)</option>
+          <option value="kg">Kilograms (kg)</option>
+          <option value="units">Units</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Total paid (COP)</label><input type="number" id="ing-cost" placeholder="0" inputmode="numeric"></div>
+    <button class="btn-primary btn-panela" id="btn-ing" onclick="logIngredient()">Log purchase</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Current ingredient prices</div>
+    <div id="r-prices-table">
+      <div class="empty"><div class="empty-icon">🥚</div>No ingredient purchases logged yet.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Recipe — quantities per loaf</div>
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:500;color:var(--corteza);padding:6px 0;border-bottom:0.5px solid var(--harina)">
+        <span>Item</span><span>Pan Grande</span><span>Pan Pequeño</span>
+      </div>
+      <div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);padding:8px 0 4px;border-bottom:0.5px solid var(--miga)">INGREDIENTS</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:0.5px solid var(--miga)">
+        <span>Bananas <span style="font-size:10px;color:var(--corteza)">(usable, 65% yield)</span></span><span>400g</span><span>200g</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:0.5px solid var(--miga)">
+        <span>Harina</span><span>175g</span><span>88g</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:0.5px solid var(--miga)">
+        <span>Butter</span><span>115g</span><span>58g</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:0.5px solid var(--miga)">
+        <span>Panela</span><span>150g</span><span>75g</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:0.5px solid var(--harina)">
+        <span>Canela</span><span>3g</span><span>1.5g</span>
+      </div>
+      <div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);padding:8px 0 4px;border-bottom:0.5px solid var(--miga)">PACKAGING</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:0.5px solid var(--miga)">
+        <span>Caja</span><span>1 unit</span><span>1 unit</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:0.5px solid var(--miga)">
+        <span>Sticker</span><span>1 unit</span><span>1 unit</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0">
+        <span>Tarjeta</span><span>1 unit</span><span>0 units</span>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--corteza);font-style:italic">Quantities based on your original cost sheet. Update if your recipe changes.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Ingredient price history</div>
+    <div class="entries-scroll" id="r-history">
+      <div class="empty"><div class="empty-icon">📈</div>No purchases logged yet.</div>
+    </div>
+  </div>
+
+  <div class="card" style="background:var(--obsidian);border-color:var(--obsidian)">
+    <div class="card-title" style="color:var(--corteza)">Real vs fixed COGS comparison</div>
+    <div style="font-size:13px">
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28">
+        <span style="color:var(--corteza)">Fixed COGS — Pan Grande</span>
+        <span style="color:var(--masa)">$13,795</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28">
+        <span style="color:var(--corteza)">Real COGS — Pan Grande today</span>
+        <span id="r-real-grande" style="color:var(--panela)">$—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28">
+        <span style="color:var(--corteza)">Fixed COGS — Pan Pequeño</span>
+        <span style="color:var(--masa)">$6,077</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28">
+        <span style="color:var(--corteza)">Real COGS — Pan Pequeño today</span>
+        <span id="r-real-pequeno" style="color:var(--panela)">$—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28">
+        <span style="color:var(--corteza)">Packaging included in real COGS</span>
+        <span id="r-packaging-note" style="color:var(--corteza);font-size:11px">Log packaging to activate</span>
+      </div>
+      <div style="font-size:10px;color:var(--corteza);margin-top:8px;font-style:italic">Real COGS = ingredients + packaging per unit at current prices.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- INVENTORY -->
+<div id="inventory" class="section">
+
+  <div class="hero">
+    <div class="hero-label">INVENTORY STATUS</div>
+    <div class="hero-amount" id="inv-status">Loading...</div>
+    <div class="hero-sub" id="inv-sub">Based on purchases, sales and samples</div>
+    <div class="hero-row">
+      <div class="hero-stat"><div class="hs-lbl">IN STOCK</div><div class="hs-val hs-pos" id="inv-ok">0</div></div>
+      <div class="hero-stat"><div class="hs-lbl">LOW STOCK</div><div class="hs-val" style="color:var(--warning)" id="inv-low">0</div></div>
+      <div class="hero-stat"><div class="hs-lbl">OUT</div><div class="hs-val hs-neg" id="inv-out">0</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Log sample loaves (deducts from inventory)</div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Product</label>
+        <select id="smp-product">
+          <option value="grande">Pan Grande</option>
+          <option value="pequeno">Pan Pequeño</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Date</label><input type="date" id="smp-date"></div>
+    </div>
+    <div class="form-group"><label>Units given as sample</label><input type="number" id="smp-units" value="1" min="1" inputmode="numeric"></div>
+    <div class="form-group"><label>Café / Note</label><input type="text" id="smp-note" placeholder="e.g. Patita Negra"></div>
+    <button class="btn-primary btn-panela" id="btn-smp" onclick="logSample()">Log sample</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Ingredients stock</div>
+    <div id="inv-ingredients"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Packaging stock</div>
+    <div id="inv-packaging"></div>
+  </div>
+
+  <div class="card" style="background:var(--obsidian);border-color:var(--obsidian)">
+    <div class="card-title" style="color:var(--corteza)">Stock calculation explained</div>
+    <div style="font-size:12px;color:var(--corteza);line-height:1.8">
+      <div>Stock = Purchases logged in Recipe tab</div>
+      <div style="color:#3A3830">− Ingredients used in sales (recipe qty × units sold)</div>
+      <div style="color:#3A3830">− Ingredients used in samples (recipe qty × sample units)</div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchTab('log',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Log
+  </button>
+  <button class="nav-btn" onclick="switchTab('overview',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>Overview
+  </button>
+  <button class="nav-btn" onclick="switchTab('history',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>History
+  </button>
+  <button class="nav-btn" onclick="switchTab('insights',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a7 7 0 017 7c0 2.5-1.5 4.5-3 6l-1 3H9l-1-3C6.5 13.5 5 11.5 5 9a7 7 0 017-7z"/><path d="M9 18h6M10 21h4"/></svg>Insights
+  </button>
+  <button class="nav-btn" onclick="switchTab('costs',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6"/></svg>Costs
+  </button>
+  <button class="nav-btn" onclick="switchTab('recipe',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M12 12h.01M12 16h.01M8 12h.01M8 16h.01M16 12h.01"/></svg>Recipe
+  </button>
+  <button class="nav-btn" onclick="switchTab('inventory',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 7H4a1 1 0 00-1 1v10a1 1 0 001 1h16a1 1 0 001-1V8a1 1 0 00-1-1z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><path d="M12 12v4M10 14h4"/></svg>Stock
+  </button>
+</nav>
+
+<div class="modal-bg" id="month-modal" onclick="if(event.target===this)closeMonthModal()">
+  <div class="modal">
+    <div class="modal-title">SELECT MONTH</div>
+    <div id="month-options"></div>
+    <button class="modal-cancel" onclick="closeMonthModal()">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GAS_URL='https://script.google.com/macros/s/AKfycbyc41FSR5OBF4lhl3BeZGH01Ho-QCpMqeq3buMx2hUQXT8Datll_fFgLqVGUMzlrLtaqg/exec';
+const PRICES={grande_retail:40000,pequeno_retail:20000,grande_wholesale:38000,pequeno_wholesale:18000};
+const COSTS={grande_retail:13795,pequeno_retail:6077,grande_wholesale:13795,pequeno_wholesale:6077};
+const PROD_LABELS={grande_retail:'Pan Grande retail',pequeno_retail:'Pan Pequeño retail',grande_wholesale:'Pan Grande wholesale',pequeno_wholesale:'Pan Pequeño wholesale'};
+const CAT_LABELS={ingredients:'Ingredients',packaging:'Packaging',printing:'Printing',transport:'Transport',samples:'Samples',gas:'Gas/electricity',other:'Other'};
+const CHAN_LABELS={whatsapp:'WhatsApp',cafe:'Café',referral:'Referral',other:'Other'};
+const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const COGS_CATS=['ingredients','packaging','printing'];
+
+let entries=[];
+let selectedMonth=today().slice(0,7);
+let dailyChart,productChart,monthlyChart,channelChart,marginChart,expenseChart;
+
+function today(){return new Date().toISOString().slice(0,10);}
+function fmt(n){return '$'+Math.round(n).toLocaleString('es-CO');}
+function getMonthLabel(m){const[y,mo]=m.split('-');return MONTH_NAMES[parseInt(mo)-1]+' '+y;}
+
+function setSyncStatus(s){
+  const d=document.getElementById('sync-dot');
+  d.className='sync-dot '+s;
+}
+
+function toast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+function destroyChart(c){if(c){try{c.destroy();}catch(e){}}}
+
+// ── GOOGLE APPS SCRIPT API ───────────────────────────────────────────────────
+function gasCall(params){
+  return new Promise((resolve,reject)=>{
+    const url=GAS_URL+'?'+new URLSearchParams(params).toString();
+    const script=document.createElement('script');
+    const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    window[cb]=function(data){
+      delete window[cb];
+      document.body.removeChild(script);
+      resolve(data);
+    };
+    script.onerror=function(){
+      delete window[cb];
+      document.body.removeChild(script);
+      reject(new Error('Network error'));
+    };
+    // Apps Script doesn't support JSONP natively so we use fetch with no-cors workaround
+    fetch(url)
+      .then(r=>r.json())
+      .then(resolve)
+      .catch(reject);
+    document.body.removeChild(script);
+  });
+}
+
+async function apiCall(params){
+  const url=GAS_URL+'?'+new URLSearchParams(params).toString();
+  const res=await fetch(url);
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  return res.json();
+}
+
+async function loadEntries(){
+  setSyncStatus('syncing');
+  document.getElementById('loading-msg').textContent='Loading your data...';
+  try{
+    const data=await apiCall({action:'get'});
+    entries=Array.isArray(data)?data.filter(e=>e.id):[];
+    // Convert types
+    entries=entries.map(e=>({
+      ...e,
+      amount:Number(e.amount)||0,
+      cost:Number(e.cost)||0,
+      units:Number(e.units)||1
+    }));
+    setSyncStatus('ok');
+    return true;
+  }catch(err){
+    setSyncStatus('err');
+    // Fallback to localStorage
+    entries=JSON.parse(localStorage.getItem('seb_local')||'[]');
+    toast('Offline — showing local data',3000);
+    return false;
+  }
+}
+
+async function insertEntry(entry){
+  setSyncStatus('syncing');
+  try{
+    await apiCall({action:'insert',data:JSON.stringify(entry)});
+    setSyncStatus('ok');
+    // Also save locally as backup
+    const local=JSON.parse(localStorage.getItem('seb_local')||'[]');
+    local.unshift(entry);
+    localStorage.setItem('seb_local',JSON.stringify(local));
+    return true;
+  }catch(err){
+    setSyncStatus('err');
+    // Save locally only
+    const local=JSON.parse(localStorage.getItem('seb_local')||'[]');
+    local.unshift(entry);
+    localStorage.setItem('seb_local',JSON.stringify(local));
+    toast('Saved locally — will sync when online',3000);
+    return false;
+  }
+}
+
+async function deleteEntryApi(id){
+  setSyncStatus('syncing');
+  try{
+    await apiCall({action:'delete',id:String(id)});
+    // Remove from local backup too
+    const local=JSON.parse(localStorage.getItem('seb_local')||'[]');
+    localStorage.setItem('seb_local',JSON.stringify(local.filter(e=>String(e.id)!==String(id))));
+    setSyncStatus('ok');
+    return true;
+  }catch(err){
+    setSyncStatus('err');
+    toast('Delete failed — check connection');
+    return false;
+  }
+}
+
+// ── INIT ────────────────────────────────────────────────────────────────────
+document.getElementById('s-date').value=today();
+document.getElementById('e-date').value=today();
+
+async function init(){
+  autoFill();
+  await loadEntries();
+  selectedMonth=today().slice(0,7);
+  document.getElementById('month-btn').textContent=getMonthLabel(selectedMonth);
+  // Fade out loading screen
+  const ls=document.getElementById('loading');
+  ls.style.opacity='0';
+  setTimeout(()=>ls.style.display='none',400);
+  renderAll();
+}
+init();
+
+function autoFill(){
+  const prod=document.getElementById('s-product').value;
+  const units=parseInt(document.getElementById('s-units').value)||1;
+  document.getElementById('s-amount').value=PRICES[prod]*units;
+}
+
+function switchForm(type,btn){
+  ['sale','expense','prices'].forEach(t=>{
+    document.getElementById('form-'+t).style.display='none';
+  });
+  document.getElementById('form-'+type).style.display='block';
+  document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function switchTab(tab,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  btn.classList.add('active');
+  if(tab==='overview')renderOverview();
+  if(tab==='history')renderHistory();
+  if(tab==='insights')renderInsights();
+  if(tab==='costs')renderCosts();
+  if(tab==='recipe')renderRecipe();
+  if(tab==='inventory')renderInventory();
+}
+
+function getMonths(){
+  const m=[...new Set(entries.map(e=>String(e.date).slice(0,7)))];
+  if(!m.includes(today().slice(0,7)))m.push(today().slice(0,7));
+  return m.sort();
+}
+
+// ── CORRECTED MATH ───────────────────────────────────────────────────────────
+// COGS (per unit cost) already includes: ingredients + packaging + printing
+// So when user logs those as expenses, we EXCLUDE them to avoid double counting
+// Only transport, samples, gas, other are subtracted from gross profit
+function monthData(month){
+  const sales=entries.filter(e=>e.type==='sale'&&String(e.date).startsWith(month));
+  const exps=entries.filter(e=>e.type==='expense'&&String(e.date).startsWith(month));
+  const revenue=sales.reduce((s,e)=>s+Number(e.amount),0);
+  const cogs=sales.reduce((s,e)=>s+Number(e.cost||0),0);
+  const grossProfit=revenue-cogs;
+  const expTotal=exps.reduce((s,e)=>s+Number(e.amount),0);
+  const otherExp=exps.filter(e=>!COGS_CATS.includes(e.category)).reduce((s,e)=>s+Number(e.amount),0);
+  const profit=grossProfit-otherExp;
+  const margin=revenue>0?profit/revenue*100:0;
+  return{sales,expenses:exps,revenue,cogs,grossProfit,expTotal,otherExp,profit,margin};
+}
+
+function openMonthModal(){
+  const months=getMonths();
+  document.getElementById('month-options').innerHTML=
+    months.slice().reverse().map(m=>
+      `<button class="modal-option ${m===selectedMonth?'active':''}" onclick="selectMonth('${m}')">${getMonthLabel(m)}</button>`
+    ).join('');
+  document.getElementById('month-modal').classList.add('open');
+}
+
+function closeMonthModal(){
+  document.getElementById('month-modal').classList.remove('open');
+}
+
+function selectMonth(m){
+  selectedMonth=m;
+  document.getElementById('month-btn').textContent=getMonthLabel(m);
+  closeMonthModal();
+  const t=document.querySelector('.section.active')?.id;
+  if(t==='overview')renderOverview();
+}
+
+async function logSale(){
+  const btn=document.getElementById('btn-sale');
+  btn.disabled=true;btn.textContent='Saving...';
+  const prod=document.getElementById('s-product').value;
+  const units=parseInt(document.getElementById('s-units').value)||1;
+  const amount=parseFloat(document.getElementById('s-amount').value)||0;
+  const entry={
+    id:Date.now(),type:'sale',
+    date:document.getElementById('s-date').value,
+    product:prod,units,amount,
+    cost:COSTS[prod]*units,
+    channel:document.getElementById('s-channel').value,
+    category:'',
+    note:document.getElementById('s-note').value
+  };
+  await insertEntry(entry);
+  entries.unshift(entry);
+  document.getElementById('s-note').value='';
+  document.getElementById('s-units').value=1;
+  autoFill();
+  btn.disabled=false;btn.textContent='Log sale';
+  toast('Sale logged — '+fmt(amount));
+  renderAll();
+}
+
+async function logExpense(){
+  const btn=document.getElementById('btn-expense');
+  btn.disabled=true;btn.textContent='Saving...';
+  const amount=parseFloat(document.getElementById('e-amount').value)||0;
+  if(!amount){toast('Enter an amount first');btn.disabled=false;btn.textContent='Log expense';return;}
+  const entry={
+    id:Date.now(),type:'expense',
+    date:document.getElementById('e-date').value,
+    product:'',units:1,amount,cost:0,channel:'',
+    category:document.getElementById('e-cat').value,
+    note:document.getElementById('e-note').value
+  };
+  await insertEntry(entry);
+  entries.unshift(entry);
+  document.getElementById('e-amount').value='';
+  document.getElementById('e-note').value='';
+  btn.disabled=false;btn.textContent='Log expense';
+  toast('Expense logged — '+fmt(amount));
+  renderAll();
+}
+
+async function deleteEntry(id){
+  if(!confirm('Delete this entry?'))return;
+  const ok=await deleteEntryApi(id);
+  if(ok)entries=entries.filter(e=>String(e.id)!==String(id));
+  renderAll();
+  toast('Deleted');
+}
+
+function renderAll(){
+  const t=document.querySelector('.section.active')?.id;
+  if(t==='overview')renderOverview();
+  if(t==='history')renderHistory();
+  if(t==='insights')renderInsights();
+  if(t==='costs')renderCosts();
+  if(t==='recipe')renderRecipe();
+  if(t==='inventory')renderInventory();
+}
+
+function renderOverview(){
+  const d=monthData(selectedMonth);
+  const tRev=parseFloat(document.getElementById('t-revenue').value)||0;
+  const revPct=tRev?Math.min(100,d.revenue/tRev*100):0;
+  const cafeRev=d.sales.filter(e=>e.channel==='cafe').reduce((s,e)=>s+Number(e.amount),0);
+
+  document.getElementById('hero-rev').textContent=fmt(d.revenue);
+  document.getElementById('hero-sub').textContent=d.sales.length+' transactions · '+d.sales.reduce((s,e)=>s+(Number(e.units)||1),0)+' units';
+  document.getElementById('hero-profit').textContent=fmt(d.profit);
+  document.getElementById('hero-profit').className='hs-val '+(d.profit>=0?'hs-pos':'hs-neg');
+  document.getElementById('hero-margin').textContent=Math.round(d.margin)+'%';
+  document.getElementById('hero-exp').textContent=fmt(d.otherExp);
+  document.getElementById('tbar-pct').textContent=Math.round(revPct)+'%';
+  document.getElementById('tbar-fill').style.width=revPct+'%';
+  document.getElementById('ov-units').textContent=d.sales.reduce((s,e)=>s+(Number(e.units)||1),0);
+  document.getElementById('ov-avg').textContent=d.sales.length?fmt(d.revenue/d.sales.length):'—';
+  document.getElementById('ov-cogs').textContent=fmt(d.cogs);
+  document.getElementById('ov-cafe').textContent=fmt(cafeRev);
+
+  const days={};
+  entries.filter(e=>String(e.date).startsWith(selectedMonth)).forEach(e=>{
+    const day=parseInt(String(e.date).slice(8,10));
+    if(!days[day])days[day]={rev:0,exp:0};
+    if(e.type==='sale')days[day].rev+=Number(e.amount);
+    else if(!COGS_CATS.includes(e.category))days[day].exp+=Number(e.amount);
+  });
+  const dk=Object.keys(days).map(Number).sort((a,b)=>a-b);
+
+  destroyChart(dailyChart);
+  dailyChart=new Chart(document.getElementById('daily-chart'),{
+    type:'bar',
+    data:{labels:dk,datasets:[
+      {label:'Revenue',data:dk.map(d=>days[d].rev),backgroundColor:'#3266ad',borderRadius:4},
+      {label:'Expenses',data:dk.map(d=>days[d].exp),backgroundColor:'#c94040',borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{callback:v=>v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v,font:{size:10}}}}}
+  });
+
+  const prodMap={};
+  d.sales.forEach(e=>{prodMap[e.product]=(prodMap[e.product]||0)+Number(e.amount);});
+  destroyChart(productChart);
+  if(Object.keys(prodMap).length){
+    productChart=new Chart(document.getElementById('product-chart'),{
+      type:'doughnut',
+      data:{labels:Object.keys(prodMap).map(k=>PROD_LABELS[k]||k),datasets:[{data:Object.values(prodMap),backgroundColor:['#3266ad','#2a9d6e','#e09f3e','#c94040']}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10}}}}
+    });
+  }
+}
+
+function renderHistory(){
+  const months=getMonths();
+  destroyChart(monthlyChart);
+  monthlyChart=new Chart(document.getElementById('monthly-chart'),{
+    type:'bar',
+    data:{labels:months.map(getMonthLabel),datasets:[
+      {label:'Revenue',data:months.map(m=>monthData(m).revenue),backgroundColor:'#3266ad',borderRadius:3},
+      {label:'Profit',data:months.map(m=>monthData(m).profit),backgroundColor:'#2a9d6e',borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v,font:{size:10}}}}}
+  });
+
+  const sorted=[...entries].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const el=document.getElementById('all-entries');
+  if(!sorted.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>No entries yet.</div>';return;}
+  el.innerHTML=sorted.map(e=>{
+    const isExp=e.type==='expense';
+    const label=isExp?(CAT_LABELS[e.category]||e.category||'Expense'):(PROD_LABELS[e.product]||e.product||'Sale');
+    const dotClass=isExp?'dot-expense':e.product?.includes('wholesale')?'dot-wholesale':e.product?.includes('grande')?'dot-grande':'dot-pequeno';
+    return`<div class="entry-item">
+      <span class="entry-dot ${dotClass}"></span>
+      <div class="entry-info">
+        <div class="entry-name">${e.note||label}</div>
+        <div class="entry-meta">${label} · ${String(e.date).slice(5)}</div>
+      </div>
+      <span class="entry-amount ${isExp?'e-neg':'e-pos'}">${isExp?'-':'+'}${fmt(Number(e.amount))}</span>
+      <button class="btn-del" onclick="deleteEntry('${e.id}')">×</button>
+    </div>`;
+  }).join('');
+}
+
+function renderInsights(){
+  const months=getMonths();
+  const allSales=entries.filter(e=>e.type==='sale');
+  const allExp=entries.filter(e=>e.type==='expense');
+  const totalRev=allSales.reduce((s,e)=>s+Number(e.amount),0);
+  const totalCogs=allSales.reduce((s,e)=>s+Number(e.cost||0),0);
+  const totalGross=totalRev-totalCogs;
+  const totalOtherExp=allExp.filter(e=>!COGS_CATS.includes(e.category)).reduce((s,e)=>s+Number(e.amount),0);
+  const totalProfit=totalGross-totalOtherExp;
+  const avgMargin=totalRev>0?totalProfit/totalRev*100:0;
+  const cafeRev=allSales.filter(e=>e.channel==='cafe').reduce((s,e)=>s+Number(e.amount),0);
+  const bestMonth=months.reduce((b,m)=>(!b||monthData(m).revenue>monthData(b).revenue)?m:b,null);
+
+  document.getElementById('insight-tiles').innerHTML=`
+    <div class="insight-tile"><div class="it-lbl">TOTAL REVENUE</div><div class="it-val">${fmt(totalRev)}</div><div class="it-sub">All time</div></div>
+    <div class="insight-tile"><div class="it-lbl">TOTAL PROFIT</div><div class="it-val">${fmt(totalProfit)}</div><div class="it-sub">After all costs</div></div>
+    <div class="insight-tile"><div class="it-lbl">AVG MARGIN</div><div class="it-val">${Math.round(avgMargin)}%</div><div class="it-sub">Target 65%+</div></div>
+    <div class="insight-tile"><div class="it-lbl">BEST MONTH</div><div class="it-val" style="font-size:15px">${bestMonth?getMonthLabel(bestMonth):'—'}</div><div class="it-sub">${bestMonth?fmt(monthData(bestMonth).revenue):''}</div></div>
+    <div class="insight-tile"><div class="it-lbl">CAFÉ REVENUE</div><div class="it-val">${fmt(cafeRev)}</div><div class="it-sub">${totalRev>0?Math.round(cafeRev/totalRev*100):0}% of total</div></div>
+    <div class="insight-tile"><div class="it-lbl">TRANSACTIONS</div><div class="it-val">${entries.length}</div><div class="it-sub">${allSales.length} sales · ${allExp.length} exp</div></div>`;
+
+  const chanMap={};
+  allSales.forEach(e=>{chanMap[e.channel]=(chanMap[e.channel]||0)+Number(e.amount);});
+  destroyChart(channelChart);
+  if(Object.keys(chanMap).length)channelChart=new Chart(document.getElementById('channel-chart'),{
+    type:'doughnut',
+    data:{labels:Object.keys(chanMap).map(k=>CHAN_LABELS[k]||k),datasets:[{data:Object.values(chanMap),backgroundColor:['#3266ad','#2a9d6e','#e09f3e','#7A7060']}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10}}}}
+  });
+
+  destroyChart(marginChart);
+  marginChart=new Chart(document.getElementById('margin-chart'),{
+    type:'line',
+    data:{labels:months.map(getMonthLabel),datasets:[
+      {label:'Margin',data:months.map(m=>Math.round(monthData(m).margin)),borderColor:'#3266ad',backgroundColor:'rgba(50,102,173,0.08)',fill:true,tension:0.3,pointRadius:4,borderWidth:2},
+      {label:'Target',data:months.map(()=>65),borderColor:'#c94040',borderDash:[4,4],pointRadius:0,fill:false,borderWidth:1.5}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}}}}}
+  });
+
+  const catMap={};
+  allExp.filter(e=>!COGS_CATS.includes(e.category)).forEach(e=>{catMap[e.category]=(catMap[e.category]||0)+Number(e.amount);});
+  destroyChart(expenseChart);
+  if(Object.keys(catMap).length)expenseChart=new Chart(document.getElementById('expense-chart'),{
+    type:'bar',
+    data:{labels:Object.keys(catMap).map(k=>CAT_LABELS[k]||k),datasets:[{data:Object.values(catMap),backgroundColor:'#c94040',borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},maxRotation:30}},y:{ticks:{callback:v=>v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v,font:{size:10}}}}}
+  });
+}
+
+function renderCosts(){
+  const month = selectedMonth;
+  const d = monthData(month);
+  const sales = d.sales;
+  const exps = d.expenses;
+
+  // COGS breakdown per product
+  const cogsMap = {};
+  sales.forEach(e=>{
+    const k = PROD_LABELS[e.product]||e.product;
+    if(!cogsMap[k]) cogsMap[k]={units:0,cogs:0};
+    cogsMap[k].units += Number(e.units)||1;
+    cogsMap[k].cogs  += Number(e.cost)||0;
+  });
+
+  // Raw purchases (ingredients, packaging, printing)
+  const purchaseMap = {};
+  exps.filter(e=>COGS_CATS.includes(e.category)).forEach(e=>{
+    const k = CAT_LABELS[e.category]||e.category;
+    purchaseMap[k]=(purchaseMap[k]||0)+Number(e.amount);
+  });
+
+  // Operational expenses
+  const opsMap = {};
+  exps.filter(e=>!COGS_CATS.includes(e.category)).forEach(e=>{
+    const k = CAT_LABELS[e.category]||e.category;
+    opsMap[k]=(opsMap[k]||0)+Number(e.amount);
+  });
+
+  const totalCogs   = d.cogs;
+  const totalPurch  = Object.values(purchaseMap).reduce((s,v)=>s+v,0);
+  const totalOps    = d.otherExp;
+  const totalCash   = totalCogs + totalOps;
+  const buffer      = totalPurch - totalCogs;
+
+  // Hero
+  document.getElementById('c-total-cash').textContent = fmt(totalCash);
+  document.getElementById('c-cogs').textContent       = fmt(totalCogs);
+  document.getElementById('c-purchases').textContent  = fmt(totalPurch);
+  document.getElementById('c-ops').textContent        = fmt(totalOps);
+
+  // COGS breakdown
+  const cogsEl = document.getElementById('c-cogs-breakdown');
+  if(Object.keys(cogsMap).length){
+    cogsEl.innerHTML = Object.entries(cogsMap).map(([k,v])=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--miga);font-size:13px">
+        <div>
+          <div style="color:var(--obsidian)">${k}</div>
+          <div style="font-size:11px;color:var(--corteza);margin-top:2px">${v.units} units × avg ${fmt(v.cogs/v.units)}</div>
+        </div>
+        <span style="font-weight:500;color:var(--danger)">${fmt(v.cogs)}</span>
+      </div>`).join('')+
+      `<div style="display:flex;justify-content:space-between;padding:10px 0;font-size:13px;font-weight:500">
+        <span>Total COGS</span><span style="color:var(--danger)">${fmt(totalCogs)}</span>
+      </div>`;
+  } else {
+    cogsEl.innerHTML='<div class="empty" style="padding:1rem">No sales logged this month.</div>';
+  }
+
+  // Purchases breakdown
+  const purchEl = document.getElementById('c-purchases-breakdown');
+  if(Object.keys(purchaseMap).length){
+    purchEl.innerHTML = Object.entries(purchaseMap).map(([k,v])=>`
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--miga);font-size:13px">
+        <span style="color:var(--obsidian)">${k}</span>
+        <span style="font-weight:500;color:var(--danger)">${fmt(v)}</span>
+      </div>`).join('');
+  } else {
+    purchEl.innerHTML='<div style="font-size:13px;color:var(--corteza);padding:8px 0">No raw material purchases logged this month.</div>';
+  }
+
+  document.getElementById('c-cogs-used').textContent  = fmt(totalCogs);
+  document.getElementById('c-raw-logged').textContent = fmt(totalPurch);
+  document.getElementById('c-buffer').textContent     = fmt(Math.abs(buffer));
+  document.getElementById('c-buffer').style.color     = buffer>=0 ? 'var(--success)' : 'var(--danger)';
+  document.getElementById('c-buffer').textContent     = (buffer>=0?'+':'-')+fmt(Math.abs(buffer));
+
+  // Ops breakdown
+  const opsEl = document.getElementById('c-ops-breakdown');
+  if(Object.keys(opsMap).length){
+    opsEl.innerHTML = Object.entries(opsMap).map(([k,v])=>`
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--miga);font-size:13px">
+        <span style="color:var(--obsidian)">${k}</span>
+        <span style="font-weight:500;color:var(--danger)">${fmt(v)}</span>
+      </div>`).join('')+
+      `<div style="display:flex;justify-content:space-between;padding:10px 0;font-size:13px;font-weight:500">
+        <span>Total ops</span><span style="color:var(--danger)">${fmt(totalOps)}</span>
+      </div>`;
+  } else {
+    opsEl.innerHTML='<div style="font-size:13px;color:var(--corteza);padding:8px 0">No operational expenses logged this month.</div>';
+  }
+
+  // Full summary card
+  document.getElementById('cs-rev').textContent   = fmt(d.revenue);
+  document.getElementById('cs-cogs').textContent  = fmt(totalCogs);
+  document.getElementById('cs-gross').textContent = fmt(d.grossProfit);
+  document.getElementById('cs-ops').textContent   = fmt(totalOps);
+  document.getElementById('cs-profit').textContent= fmt(d.profit);
+}
+
+
+// ── RECIPE & INGREDIENT PRICING ─────────────────────────────────────────────
+
+// Recipe quantities per loaf
+// Ingredients in GRAMS, packaging in UNITS
+const RECIPE = {
+  grande:  { bananas:400, harina:175, butter:115, panela:150, canela:3, caja_grande:1, sticker:1, tarjeta:1 },
+  pequeno: { bananas:200, harina:88,  butter:58,  panela:75,  canela:1.5, caja_pequena:1, sticker:1, tarjeta:0 }
+};
+
+const ING_LABELS = {
+  bananas:'Bananas (65% yield)', harina:'Harina', butter:'Butter', panela:'Panela', canela:'Canela',
+  caja_grande:'Caja Grande', caja_pequena:'Caja Pequeña', sticker:'Sticker', tarjeta:'Tarjeta'
+};
+
+const PACKAGING_ITEMS = ['caja_grande','caja_pequena','sticker','tarjeta'];
+const ING_ITEMS = ['bananas','harina','butter','panela','canela'];
+
+function updateIngUnit(){
+  const ing = document.getElementById('ing-name').value;
+  const unitSel = document.getElementById('ing-unit');
+  const lbl = document.getElementById('ing-qty-label');
+  if(PACKAGING_ITEMS.includes(ing)){
+    unitSel.value = 'units';
+    unitSel.disabled = true;
+    lbl.textContent = 'Quantity bought (units)';
+  } else {
+    unitSel.disabled = false;
+    lbl.textContent = 'Quantity bought (g or kg)';
+  }
+}
+
+// Ingredient purchases stored in localStorage (keyed separately from entries)
+function getIngPurchases() {
+  return JSON.parse(localStorage.getItem('seb_ingredients') || '[]');
+}
+
+function saveIngPurchases(data) {
+  localStorage.setItem('seb_ingredients', JSON.stringify(data));
+}
+
+// Get latest price per unit (gram for ingredients, unit for packaging)
+function getCurrentPricesPerGram() {
+  const purchases = getIngPurchases();
+  const latest = {};
+  const sorted = [...purchases].sort((a,b) => a.date.localeCompare(b.date));
+  sorted.forEach(p => {
+    if(PACKAGING_ITEMS.includes(p.ingredient)){
+      // Price per single unit
+      latest[p.ingredient] = p.cost / p.qty;
+    } else {
+      // Convert to price per gram, applying yield factor
+      // e.g. bananas: 1kg bought = 650g usable at 65% yield
+      const qtyInGrams = p.unit === 'kg' ? p.qty * 1000 : p.qty;
+      const yield_factor = YIELD_FACTORS[p.ingredient] || 1.0;
+      const usableGrams = qtyInGrams * yield_factor;
+      latest[p.ingredient] = p.cost / usableGrams;
+    }
+  });
+  return latest;
+}
+
+// Calculate real cost per loaf (ingredients by gram, packaging by unit)
+function calcRealCost(product) {
+  const prices = getCurrentPricesPerGram();
+  const recipe = RECIPE[product];
+  let total = 0;
+  let complete = true;
+  let packagingTotal = 0;
+  Object.entries(recipe).forEach(([ing, qty]) => {
+    if(qty === 0) return; // skip tarjeta for pequeño
+    if (prices[ing] !== undefined) {
+      const cost = prices[ing] * qty;
+      total += cost;
+      if(PACKAGING_ITEMS.includes(ing)) packagingTotal += cost;
+    } else {
+      complete = false;
+    }
+  });
+  return { total: Math.round(total), complete, packagingTotal: Math.round(packagingTotal) };
+}
+
+document.getElementById('ing-date').value = today();
+
+async function logIngredient() {
+  const btn = document.getElementById('btn-ing');
+  const ingredient = document.getElementById('ing-name').value;
+  const qty = parseFloat(document.getElementById('ing-qty').value) || 0;
+  const unit = document.getElementById('ing-unit').value;
+  const cost = parseFloat(document.getElementById('ing-cost').value) || 0;
+  const date = document.getElementById('ing-date').value;
+
+  if (!qty || !cost) { toast('Enter quantity and cost'); return; }
+
+  const purchase = { id: Date.now(), ingredient, qty, unit, cost, date };
+  const purchases = getIngPurchases();
+  purchases.push(purchase);
+  saveIngPurchases(purchases);
+
+  // Also log as expense in main sheet
+  const isPack = PACKAGING_ITEMS.includes(ingredient);
+  const entry = {
+    id: purchase.id,
+    type: 'expense',
+    date,
+    product: '',
+    units: 1,
+    amount: cost,
+    cost: 0,
+    channel: '',
+    category: isPack ? 'packaging' : 'ingredients',
+    note: ING_LABELS[ingredient] + ' ' + qty + (isPack ? ' units' : unit)
+  };
+
+  btn.disabled = true; btn.textContent = 'Saving...';
+  await insertEntry(entry);
+  entries.unshift(entry);
+  btn.disabled = false; btn.textContent = 'Log purchase';
+
+  document.getElementById('ing-qty').value = '';
+  document.getElementById('ing-cost').value = '';
+  toast('Logged — ' + ING_LABELS[ingredient] + ' ' + qty + unit + ' for ' + fmt(cost));
+  renderRecipe();
+}
+
+function renderRecipe() {
+  const purchases = getIngPurchases();
+  const pricesPerGram = getCurrentPricesPerGram();
+
+  const grande  = calcRealCost('grande');
+  const pequeno = calcRealCost('pequeno');
+
+  // Hero
+  if (grande.complete) {
+    document.getElementById('r-cost-grande').textContent = fmt(grande.total);
+    const m = Math.round((40000 - grande.total) / 40000 * 100);
+    document.getElementById('r-margin-grande').textContent = 'retail margin ' + m + '%';
+  } else {
+    document.getElementById('r-cost-grande').textContent = 'Log all ingredients';
+    document.getElementById('r-margin-grande').textContent = 'prices incomplete';
+  }
+
+  if (pequeno.complete) {
+    document.getElementById('r-cost-pequeno').textContent = fmt(pequeno.total);
+    const m = Math.round((20000 - pequeno.total) / 20000 * 100);
+    document.getElementById('r-margin-pequeno').textContent = 'retail margin ' + m + '%';
+  } else {
+    document.getElementById('r-cost-pequeno').textContent = 'Log all ingredients';
+    document.getElementById('r-margin-pequeno').textContent = 'prices incomplete';
+  }
+
+  // Comparison card
+  document.getElementById('r-real-grande').textContent  = grande.complete  ? fmt(grande.total)  : '— log all ingredients';
+  document.getElementById('r-real-pequeno').textContent = pequeno.complete ? fmt(pequeno.total) : '— log all ingredients';
+
+  // Current prices table
+  const allItems = [...ING_ITEMS, ...PACKAGING_ITEMS];
+  const pricesEl = document.getElementById('r-prices-table');
+  if (!purchases.length) {
+    pricesEl.innerHTML = '<div class="empty"><div class="empty-icon">🥚</div>No purchases logged yet.</div>';
+  } else {
+    let html = '<div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);padding:6px 0 4px;border-bottom:0.5px solid var(--miga)">INGREDIENTS</div>';
+    html += ING_ITEMS.map(ing => {
+      const ppg = pricesPerGram[ing];
+      const ppkg = ppg ? Math.round(ppg * 1000) : null;
+      const last = [...purchases].filter(p=>p.ingredient===ing).sort((a,b)=>b.date.localeCompare(a.date))[0];
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--miga);font-size:13px">
+        <div>
+          <div style="color:var(--obsidian);font-weight:500">${ING_LABELS[ing]}</div>
+          <div style="font-size:11px;color:var(--corteza);margin-top:2px">${last ? 'Last: ' + last.qty + last.unit + ' for ' + fmt(last.cost) + ' · ' + last.date.slice(5) : 'Not logged yet'}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:500;color:var(--obsidian)">${ppkg ? fmt(ppkg) + '/kg' : '—'}</div>
+          <div style="font-size:10px;color:var(--corteza)">${ppg ? '$' + ppg.toFixed(1) + '/g' : ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+    html += '<div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);padding:8px 0 4px;border-bottom:0.5px solid var(--miga)">PACKAGING</div>';
+    html += PACKAGING_ITEMS.map(ing => {
+      const ppu = pricesPerGram[ing]; // price per unit for packaging
+      const last = [...purchases].filter(p=>p.ingredient===ing).sort((a,b)=>b.date.localeCompare(a.date))[0];
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--miga);font-size:13px">
+        <div>
+          <div style="color:var(--obsidian);font-weight:500">${ING_LABELS[ing]}</div>
+          <div style="font-size:11px;color:var(--corteza);margin-top:2px">${last ? 'Last: ' + last.qty + ' units for ' + fmt(last.cost) + ' · ' + last.date.slice(5) : 'Not logged yet'}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:500;color:var(--obsidian)">${ppu ? fmt(Math.round(ppu)) + '/unit' : '—'}</div>
+        </div>
+      </div>`;
+    }).join('');
+    pricesEl.innerHTML = html;
+  }
+
+  // Update packaging note in comparison card
+  const packNote = document.getElementById('r-packaging-note');
+  const hasPackaging = PACKAGING_ITEMS.some(i => pricesPerGram[i] !== undefined);
+  if(hasPackaging){
+    const gTotal = grande.packagingTotal || 0;
+    const pTotal = pequeno.packagingTotal || 0;
+    packNote.textContent = 'Grande +' + fmt(gTotal) + ' · Pequeño +' + fmt(pTotal);
+    packNote.style.color = 'var(--panela)';
+  } else {
+    packNote.textContent = 'Log packaging to activate';
+    packNote.style.color = 'var(--corteza)';
+  }
+
+  // History
+  const histEl = document.getElementById('r-history');
+  if (!purchases.length) {
+    histEl.innerHTML = '<div class="empty"><div class="empty-icon">📈</div>No purchases logged yet.</div>';
+  } else {
+    const sorted = [...purchases].sort((a,b) => b.date.localeCompare(a.date));
+    histEl.innerHTML = sorted.map(p => {
+      const isPack = PACKAGING_ITEMS.includes(p.ingredient);
+      const unitLabel = isPack
+        ? fmt(Math.round(p.cost/p.qty)) + '/unit'
+        : fmt(Math.round(p.cost / (p.unit==='kg'?p.qty:p.qty/1000))) + '/kg';
+      return `<div class="entry-item">
+        <span class="entry-dot" style="background:${isPack?'var(--panela)':'var(--success)'}"></span>
+        <div class="entry-info">
+          <div class="entry-name">${ING_LABELS[p.ingredient]} — ${p.qty} ${isPack?'units':p.unit}</div>
+          <div class="entry-meta">${p.date.slice(5)} · ${unitLabel}</div>
+        </div>
+        <span class="entry-amount e-neg">${fmt(p.cost)}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+
+// ── INVENTORY ────────────────────────────────────────────────────────────────
+
+// Samples stored in localStorage
+function getSamples() {
+  return JSON.parse(localStorage.getItem('seb_samples') || '[]');
+}
+function saveSamples(data) {
+  localStorage.setItem('seb_samples', JSON.stringify(data));
+}
+
+document.getElementById('smp-date').value = today();
+
+async function logSample() {
+  const btn = document.getElementById('btn-smp');
+  const product = document.getElementById('smp-product').value;
+  const units = parseInt(document.getElementById('smp-units').value) || 1;
+  const date = document.getElementById('smp-date').value;
+  const note = document.getElementById('smp-note').value;
+
+  // Calculate cost of samples
+  const costPerUnit = product === 'grande' ? 13795 : 6077;
+  const totalCost = costPerUnit * units;
+
+  // Save sample record locally
+  const sample = { id: Date.now(), product, units, date, note };
+  const samples = getSamples();
+  samples.push(sample);
+  saveSamples(samples);
+
+  // Log as expense in main ledger
+  const entry = {
+    id: sample.id,
+    type: 'expense',
+    date,
+    product: '',
+    units,
+    amount: totalCost,
+    cost: 0,
+    channel: '',
+    category: 'samples',
+    note: 'Sample ' + (product === 'grande' ? 'Pan Grande' : 'Pan Pequeño') + (note ? ' — ' + note : '')
+  };
+
+  btn.disabled = true; btn.textContent = 'Saving...';
+  await insertEntry(entry);
+  entries.unshift(entry);
+  btn.disabled = false; btn.textContent = 'Log sample';
+
+  document.getElementById('smp-units').value = 1;
+  document.getElementById('smp-note').value = '';
+  toast('Sample logged — ' + units + ' ' + (product === 'grande' ? 'Pan Grande' : 'Pan Pequeño') + ' · ' + fmt(totalCost));
+  renderInventory();
+}
+
+function calcInventory() {
+  const purchases = getIngPurchases();
+  const samples = getSamples();
+  const allItems = [...ING_ITEMS, ...PACKAGING_ITEMS];
+
+  // Start with all purchases
+  const stock = {};
+  allItems.forEach(ing => stock[ing] = 0);
+
+  purchases.forEach(p => {
+    const ing = p.ingredient;
+    if (PACKAGING_ITEMS.includes(ing)) {
+      stock[ing] = (stock[ing] || 0) + Number(p.qty);
+    } else {
+      // Apply yield factor to get usable grams
+      // e.g. 1kg bananas → 650g usable after peeling
+      const grams = p.unit === 'kg' ? p.qty * 1000 : p.qty;
+      const yield_factor = YIELD_FACTORS[ing] || 1.0;
+      stock[ing] = (stock[ing] || 0) + (grams * yield_factor);
+    }
+  });
+
+  // Subtract sales consumption
+  entries.filter(e => e.type === 'sale').forEach(e => {
+    const product = String(e.product || '');
+    const units = Number(e.units) || 1;
+    let recipe = null;
+    if (product.includes('grande')) recipe = RECIPE.grande;
+    else if (product.includes('pequeno')) recipe = RECIPE.pequeno;
+    if (!recipe) return;
+    Object.entries(recipe).forEach(([ing, qty]) => {
+      if (qty === 0) return;
+      stock[ing] = (stock[ing] || 0) - qty * units;
+    });
+  });
+
+  // Subtract sample consumption
+  samples.forEach(s => {
+    const recipe = s.product === 'grande' ? RECIPE.grande : RECIPE.pequeno;
+    const units = Number(s.units) || 1;
+    Object.entries(recipe).forEach(([ing, qty]) => {
+      if (qty === 0) return;
+      stock[ing] = (stock[ing] || 0) - qty * units;
+    });
+  });
+
+  return stock;
+}
+
+function stockStatus(ing, qty) {
+  // Define low stock thresholds (enough for ~2 loaves)
+  const thresholds = {
+    bananas: 800, harina: 350, butter: 230, panela: 300, canela: 6,
+    caja_grande: 2, caja_pequena: 2, sticker: 4, tarjeta: 2
+  };
+  const threshold = thresholds[ing] || 2;
+  if (qty <= 0) return 'out';
+  if (qty <= threshold) return 'low';
+  return 'ok';
+}
+
+function stockColor(status) {
+  return { ok: 'var(--success)', low: 'var(--warning)', out: 'var(--danger)' }[status];
+}
+
+function stockLabel(status) {
+  return { ok: 'In stock', low: 'Low', out: 'Out of stock' }[status];
+}
+
+function formatStock(ing, qty) {
+  if (PACKAGING_ITEMS.includes(ing)) return Math.round(qty) + ' units';
+  if (qty >= 1000) return (qty/1000).toFixed(2) + ' kg';
+  return Math.round(qty) + ' g';
+}
+
+function renderInventory() {
+  const stock = calcInventory();
+  const allStatuses = Object.keys(stock).map(ing => stockStatus(ing, stock[ing]));
+  const okCount  = allStatuses.filter(s=>s==='ok').length;
+  const lowCount = allStatuses.filter(s=>s==='low').length;
+  const outCount = allStatuses.filter(s=>s==='out').length;
+
+  // Hero
+  const overallStatus = outCount > 0 ? 'Items out of stock' : lowCount > 0 ? 'Some items running low' : 'All items in stock';
+  document.getElementById('inv-status').textContent = overallStatus;
+  document.getElementById('inv-status').style.color = outCount > 0 ? 'var(--danger)' : lowCount > 0 ? 'var(--warning)' : 'var(--success)';
+  document.getElementById('inv-ok').textContent  = okCount;
+  document.getElementById('inv-low').textContent = lowCount;
+  document.getElementById('inv-out').textContent = outCount;
+
+  const purchases = getIngPurchases();
+
+  function renderStockRow(ing) {
+    const qty = stock[ing] || 0;
+    const status = stockStatus(ing, qty);
+    const color = stockColor(status);
+    const label = stockLabel(status);
+    const lastPurchase = [...purchases].filter(p=>p.ingredient===ing).sort((a,b)=>b.date.localeCompare(a.date))[0];
+    // Calculate total bought
+    const totalBought = purchases.filter(p=>p.ingredient===ing).reduce((s,p)=>{
+      return s + (PACKAGING_ITEMS.includes(ing) ? Number(p.qty) : (p.unit==='kg'?p.qty*1000:p.qty));
+    }, 0);
+    const used = totalBought - qty;
+
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:0.5px solid var(--miga);font-size:13px">
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-weight:500;color:var(--obsidian)">${ING_LABELS[ing]}</span>
+          <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${color}20;color:${color}">${label}</span>
+        </div>
+        <div style="font-size:11px;color:var(--corteza);margin-top:3px">
+          Used: ${formatStock(ing, used)} · Bought: ${formatStock(ing, totalBought)}
+          ${lastPurchase ? ' · Last: ' + lastPurchase.date.slice(5) : ''}
+        </div>
+      </div>
+      <div style="text-align:right;min-width:80px">
+        <div style="font-size:18px;font-weight:500;color:${color}">${formatStock(ing, qty)}</div>
+        <div style="font-size:10px;color:var(--corteza)">remaining</div>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('inv-ingredients').innerHTML = ING_ITEMS.map(renderStockRow).join('') ||
+    '<div class="empty">Log ingredient purchases in Recipe tab first.</div>';
+
+  document.getElementById('inv-packaging').innerHTML = PACKAGING_ITEMS.map(renderStockRow).join('') ||
+    '<div class="empty">Log packaging purchases in Recipe tab first.</div>';
+}
+
+</script>
+</body>
+</html>
