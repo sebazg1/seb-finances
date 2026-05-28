@@ -55,7 +55,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
 .metric-tile{background:white;border:0.5px solid var(--harina);border-radius:12px;padding:14px}
 .mt-lbl{font-size:10px;letter-spacing:0.08em;color:var(--corteza);margin-bottom:4px}
 .mt-val{font-size:18px;font-weight:500;color:var(--obsidian)}
-.mt-val.pos{color:var(--success)}.mt-val.neg{color:var(--danger)}
+.mt-val.pos{color:var(--success)}.mt-val.neg{color:var(--danger)}.mt-val.neutral{color:var(--warning)}
 .form-group{margin-bottom:12px}
 .form-group label{display:block;font-size:11px;letter-spacing:0.08em;color:var(--corteza);margin-bottom:5px}
 .form-group input,.form-group select{width:100%;padding:13px 14px;background:var(--miga);border:0.5px solid var(--harina);border-radius:10px;font-family:'Montserrat',sans-serif;font-size:15px;color:var(--obsidian);outline:none;-webkit-appearance:none;appearance:none}
@@ -272,37 +272,62 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
 
 <!-- COSTS -->
 <div id="costs" class="section">
-  <div class="hero">
-    <div class="hero-label">CASH SPENT THIS MONTH</div>
-    <div class="hero-amount" id="c-total-cash">$0</div>
-    <div class="hero-sub">COGS + operational expenses</div>
-    <div class="hero-row">
-      <div class="hero-stat"><div class="hs-lbl">COGS</div><div class="hs-val hs-neg" id="c-cogs">$0</div></div>
-      <div class="hero-stat"><div class="hs-lbl">PURCHASES</div><div class="hs-val hs-neg" id="c-purchases">$0</div></div>
-      <div class="hero-stat"><div class="hs-lbl">OPERATIONS</div><div class="hs-val hs-neg" id="c-ops">$0</div></div>
-    </div>
+
+  <div class="metrics-2">
+    <div class="metric-tile"><div class="mt-lbl">REVENUE</div><div class="mt-val pos" id="c-rev-tile">$0</div></div>
+    <div class="metric-tile"><div class="mt-lbl">NET PROFIT</div><div class="mt-val pos" id="c-profit-tile">$0</div></div>
+    <div class="metric-tile"><div class="mt-lbl">TOTAL COGS</div><div class="mt-val neg" id="c-cogs-tile">$0</div></div>
+    <div class="metric-tile"><div class="mt-lbl">MARGIN</div><div class="mt-val" id="c-margin-tile">0%</div></div>
   </div>
-  <div class="card"><div class="card-title">COGS breakdown — auto calculated per unit sold</div><div id="c-cogs-breakdown"></div></div>
+
   <div class="card">
-    <div class="card-title">Raw material purchases logged</div>
-    <div id="c-purchases-breakdown"></div>
-    <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--harina)">
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--corteza)">COGS used (from sales)</span><span id="c-cogs-used" style="font-weight:500">$0</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--corteza)">Raw purchases logged</span><span id="c-raw-logged" style="font-weight:500">$0</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding-top:8px;border-top:0.5px solid var(--miga)"><span style="color:var(--corteza)">Inventory buffer est.</span><span id="c-buffer" style="font-weight:500;color:var(--success)">$0</span></div>
-    </div>
-  </div>
-  <div class="card"><div class="card-title">Operational expenses (not in COGS)</div><div id="c-ops-breakdown"></div></div>
-  <div class="card" style="background:var(--obsidian);border-color:var(--obsidian)">
-    <div class="card-title" style="color:var(--corteza)">Full cost summary</div>
+    <div class="card-title">Full cost summary</div>
     <div style="font-size:13px">
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28"><span style="color:var(--corteza)">Revenue</span><span id="cs-rev" style="color:var(--masa);font-weight:500">$0</span></div>
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28"><span style="color:var(--corteza)">Auto COGS (per unit)</span><span id="cs-cogs" style="color:var(--danger)">$0</span></div>
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28"><span style="color:var(--corteza)">Gross profit</span><span id="cs-gross" style="color:var(--panela)">$0</span></div>
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28"><span style="color:var(--corteza)">Operational expenses</span><span id="cs-ops" style="color:var(--danger)">$0</span></div>
-      <div style="display:flex;justify-content:space-between;padding:8px 0"><span style="color:var(--masa);font-weight:500">Net profit</span><span id="cs-profit" style="color:var(--success);font-weight:500;font-size:16px">$0</span></div>
+      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--harina)">
+        <span style="color:var(--corteza)">Revenue</span>
+        <span id="cs-rev" style="font-weight:500;color:var(--success)">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--harina)">
+        <span style="color:var(--corteza)">COGS (real cost)</span>
+        <span id="cs-cogs" style="color:var(--danger)">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--harina)">
+        <span style="color:var(--corteza)">Gross profit</span>
+        <span id="cs-gross" style="font-weight:500">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--harina)">
+        <span style="color:var(--corteza)">Operational expenses</span>
+        <span id="cs-ops" style="color:var(--danger)">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:9px 0">
+        <span style="font-weight:500;color:var(--obsidian)">Net profit</span>
+        <span id="cs-profit" style="font-weight:500;font-size:16px;color:var(--success)">$0</span>
+      </div>
+    </div>
+    <div style="height:6px;background:var(--miga);border-radius:3px;overflow:hidden;margin-top:12px">
+      <div id="cs-margin-bar" style="height:100%;border-radius:3px;background:var(--success);width:0%;transition:width 0.5s"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--corteza);margin-top:3px">
+      <span>0%</span><span style="color:var(--warning)">65% target</span><span>100%</span>
     </div>
   </div>
+
+  <div class="card">
+    <div class="card-title">COGS breakdown per product</div>
+    <div style="font-size:11px;color:var(--corteza);font-style:italic;margin-bottom:12px;margin-top:-6px" id="c-cogs-source">Using real recipe cost where available</div>
+    <div id="c-cogs-breakdown"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Operational expenses</div>
+    <div id="c-ops-breakdown"></div>
+    <div style="display:flex;justify-content:space-between;padding:9px 0;border-top:0.5px solid var(--harina);font-size:13px;margin-top:4px">
+      <span style="font-weight:500">Total</span>
+      <span id="c-ops-total" style="font-weight:500;color:var(--danger)">$0</span>
+    </div>
+    <div style="font-size:11px;color:var(--corteza);margin-top:2px" id="c-ops-pct">0% of revenue</div>
+  </div>
+
 </div>
 
 <!-- RECIPE -->
@@ -979,53 +1004,117 @@ function renderInsights(){
 function renderCosts(){
   const month=selectedMonth;
   const d=monthData(month);
-  const purchases=parseIngredientPurchases(entries).filter(p=>p.date.startsWith(month));
-  const cogsMap={};
+
+  // Get real recipe costs from purchases
+  const allPurchases=parseIngredientPurchases(entries);
+  const prices=getLatestPrices(allPurchases);
+  const hasRealCost=Object.keys(prices).length>0;
+
+  // Calculate real cost per unit for each product using recipe prices if available
+  function getRealCostPerUnit(product){
+    const r=calcRealCost(product,prices);
+    if(r.complete) return r.total;
+    // Fall back to fixed COGS
+    if(product==='grande') return 13795;
+    return 6077;
+  }
+
+  // Build per-product breakdown using real costs
+  const prodMap={};
   d.sales.forEach(e=>{
-    const k=PROD_LABELS[e.product]||e.product;
-    if(!cogsMap[k]) cogsMap[k]={units:0,cogs:0};
-    cogsMap[k].units+=e.units;cogsMap[k].cogs+=e.cost;
+    const prod=e.product;
+    if(!prodMap[prod]) prodMap[prod]={units:0,revenue:0,realCogs:0,fixedCogs:0};
+    prodMap[prod].units+=e.units;
+    prodMap[prod].revenue+=e.amount;
+    prodMap[prod].fixedCogs+=e.cost;
+    // Use real cost if available
+    const baseProd=prod.includes('grande')?'grande':'pequeno';
+    const realUnit=getRealCostPerUnit(baseProd);
+    prodMap[prod].realCogs+=Math.round(realUnit*e.units);
   });
-  const purchaseMap={};
-  purchases.forEach(p=>{
-    const k=ING_LABELS[p.ingredient]||p.ingredient;
-    purchaseMap[k]=(purchaseMap[k]||0)+p.cost;
-  });
-  const totalPurch=Object.values(purchaseMap).reduce((s,v)=>s+v,0);
-  const buffer=totalPurch-d.cogs;
-  document.getElementById('c-total-cash').textContent=fmt(d.cogs+d.otherExp);
-  document.getElementById('c-cogs').textContent=fmt(d.cogs);
-  document.getElementById('c-purchases').textContent=fmt(totalPurch);
-  document.getElementById('c-ops').textContent=fmt(d.otherExp);
+
+  // Total real COGS
+  const totalRealCogs=Math.round(Object.values(prodMap).reduce((s,v)=>s+v.realCogs,0));
+  const realGross=d.revenue-totalRealCogs;
+  const realProfit=realGross-d.otherExp;
+  const realMargin=d.revenue>0?Math.round(realProfit/d.revenue*100):0;
+
+  // Four metric tiles
+  document.getElementById('c-rev-tile').textContent=fmt(d.revenue);
+  document.getElementById('c-profit-tile').textContent=fmt(realProfit);
+  document.getElementById('c-cogs-tile').textContent=fmt(totalRealCogs);
+  document.getElementById('c-margin-tile').textContent=realMargin+'%';
+  const marginEl=document.getElementById('c-margin-tile');
+  marginEl.className='mt-val '+(realMargin>=65?'pos':realMargin>=50?'neutral':'neg');
+
+  // Full cost summary
+  document.getElementById('cs-rev').textContent=fmt(d.revenue);
+  document.getElementById('cs-cogs').textContent='− '+fmt(totalRealCogs);
+  document.getElementById('cs-gross').textContent=fmt(realGross);
+  document.getElementById('cs-ops').textContent='− '+fmt(d.otherExp);
+  document.getElementById('cs-profit').textContent=fmt(realProfit);
+  document.getElementById('cs-margin-bar').style.width=Math.min(100,realMargin)+'%';
+  document.getElementById('cs-margin-bar').style.background=realMargin>=65?'var(--success)':realMargin>=50?'var(--warning)':'var(--danger)';
+
+  // COGS source note
+  document.getElementById('c-cogs-source').textContent=hasRealCost?
+    'Using real recipe cost from your logged purchases':
+    'Using fixed COGS — log ingredient prices in Recipe tab for real cost';
+
+  // COGS breakdown per product
   const cogsEl=document.getElementById('c-cogs-breakdown');
-  cogsEl.innerHTML=Object.keys(cogsMap).length?Object.entries(cogsMap).map(([k,v])=>`
-    <div class="stock-row"><div><div style="color:var(--obsidian)">${k}</div><div style="font-size:11px;color:var(--corteza)">${v.units} units × avg ${fmt(v.cogs/v.units)}</div></div><span style="font-weight:500;color:var(--danger)">${fmt(v.cogs)}</span></div>`).join('')+
-    `<div class="stock-row"><span style="font-weight:500">Total COGS</span><span style="font-weight:500;color:var(--danger)">${fmt(d.cogs)}</span></div>`:
-    '<div class="empty" style="padding:1rem">No sales this month.</div>';
-  const purchEl=document.getElementById('c-purchases-breakdown');
-  purchEl.innerHTML=Object.keys(purchaseMap).length?Object.entries(purchaseMap).map(([k,v])=>`
-    <div class="stock-row"><span style="color:var(--obsidian)">${k}</span><span style="font-weight:500;color:var(--danger)">${fmt(v)}</span></div>`).join(''):
-    '<div style="font-size:13px;color:var(--corteza);padding:8px 0">No raw material purchases this month.</div>';
-  document.getElementById('c-cogs-used').textContent=fmt(d.cogs);
-  document.getElementById('c-raw-logged').textContent=fmt(totalPurch);
-  const bufEl=document.getElementById('c-buffer');
-  bufEl.textContent=(buffer>=0?'+':'-')+fmt(Math.abs(buffer));
-  bufEl.style.color=buffer>=0?'var(--success)':'var(--danger)';
+  if(!Object.keys(prodMap).length){
+    cogsEl.innerHTML='<div class="empty" style="padding:1rem">No sales this month.</div>';
+  } else {
+    cogsEl.innerHTML=Object.entries(prodMap).map(([prod,v],i)=>{
+      const isFirst=i>0;
+      const margin=v.revenue>0?Math.round((v.revenue-v.realCogs)/v.revenue*100):0;
+      const barColor=margin>=65?'var(--success)':margin>=50?'var(--warning)':'var(--danger)';
+      const costPerUnit=v.units>0?Math.round(v.realCogs/v.units):0;
+      return `<div style="${isFirst?'border-top:0.5px solid var(--harina);padding-top:14px;margin-top:4px':''}margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div>
+            <span style="font-size:13px;font-weight:500;color:var(--obsidian)">${PROD_LABELS[prod]||prod}</span>
+            <span style="font-size:11px;color:var(--corteza);margin-left:6px">${v.units} units</span>
+          </div>
+          <span style="font-size:10px;padding:2px 8px;border-radius:6px;font-weight:500;background:${margin>=65?'rgba(42,157,110,0.12)':'rgba(201,64,64,0.1)'};color:${margin>=65?'var(--success)':'var(--danger)'}">${margin}% margin</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--miga)">
+          <span style="color:var(--corteza)">Cost per unit</span><span style="font-weight:500">${fmt(costPerUnit)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--miga)">
+          <span style="color:var(--corteza)">Total COGS</span><span style="font-weight:500;color:var(--danger)">${fmt(v.realCogs)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0">
+          <span style="color:var(--corteza)">Revenue</span><span style="font-weight:500;color:var(--success)">${fmt(v.revenue)}</span>
+        </div>
+        <div style="height:5px;background:var(--miga);border-radius:3px;overflow:hidden;margin-top:8px">
+          <div style="height:100%;border-radius:3px;background:${barColor};width:${Math.min(100,margin)}%"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Operational expenses
+  const OPS_ORDER=['transport','samples','gas','other'];
+  const OPS_LABELS={transport:'Transport',samples:'Samples',gas:'Gas / electricity',other:'Other'};
   const opsMap={};
   d.expenses.filter(e=>!COGS_CATS.includes(e.category)).forEach(e=>{
-    const k=CAT_LABELS[e.category]||e.category;
+    const k=e.category||'other';
     opsMap[k]=(opsMap[k]||0)+e.amount;
   });
   const opsEl=document.getElementById('c-ops-breakdown');
-  opsEl.innerHTML=Object.keys(opsMap).length?Object.entries(opsMap).map(([k,v])=>`
-    <div class="stock-row"><span style="color:var(--obsidian)">${k}</span><span style="font-weight:500;color:var(--danger)">${fmt(v)}</span></div>`).join('')+
-    `<div class="stock-row"><span style="font-weight:500">Total ops</span><span style="font-weight:500;color:var(--danger)">${fmt(d.otherExp)}</span></div>`:
-    '<div style="font-size:13px;color:var(--corteza);padding:8px 0">No operational expenses this month.</div>';
-  document.getElementById('cs-rev').textContent=fmt(d.revenue);
-  document.getElementById('cs-cogs').textContent=fmt(d.cogs);
-  document.getElementById('cs-gross').textContent=fmt(d.grossProfit);
-  document.getElementById('cs-ops').textContent=fmt(d.otherExp);
-  document.getElementById('cs-profit').textContent=fmt(d.profit);
+  const opsRows=OPS_ORDER.map(k=>{
+    const v=opsMap[k]||0;
+    return `<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--harina);font-size:13px">
+      <span style="color:var(--corteza)">${OPS_LABELS[k]||k}</span>
+      <span style="${v>0?'font-weight:500;color:var(--danger)':'color:var(--harina)'}">${v>0?fmt(v):'$0'}</span>
+    </div>`;
+  }).join('');
+  opsEl.innerHTML=opsRows;
+  document.getElementById('c-ops-total').textContent=fmt(d.otherExp);
+  const pctEl=document.getElementById('c-ops-pct');
+  pctEl.textContent=d.revenue>0?Math.round(d.otherExp/d.revenue*100)+'% of revenue':'—';
 }
 
 // ── RENDER: RECIPE ───────────────────────────────────────────────────────────
@@ -1279,13 +1368,33 @@ function renderStock(){
   document.getElementById('inv-baseline-sub').textContent=
     baseline?'Baseline set '+baseline.date+' · Tracking sales & purchases from this date':'No baseline set — enter stock count below';
 
+  // Calculate consumed per ingredient from actual sales + samples after baseline
+  const consumed={};
+  [...ING_ITEMS,...PACKAGING_ITEMS].forEach(ing=>consumed[ing]=0);
+  salesFiltered.forEach(e=>{
+    const prod=e.product.includes('grande')?'grande':'pequeno';
+    Object.entries(RECIPE[prod]).forEach(([ing,qty])=>{
+      if(qty===0) return;
+      consumed[ing]=(consumed[ing]||0)+qty*e.units;
+    });
+  });
+  samples.forEach(s=>{
+    const recipe=RECIPE[s.product]||RECIPE.grande;
+    Object.entries(recipe).forEach(([ing,qty])=>{
+      if(qty===0) return;
+      consumed[ing]=(consumed[ing]||0)+qty*s.units;
+    });
+  });
+
   function renderRow(ing){
     const qty=stock[ing]||0;
     const status=getStatus(ing,qty);
     const color=statusColor(status);
     const label=statusLabel(status);
+    // Bought = purchases after baseline date (usable grams/units)
     const bought=purchases.filter(p=>p.ingredient===ing).reduce((s,p)=>s+(PACKAGING_ITEMS.includes(ing)?p.qty:(p.unit==='kg'?p.qty*1000:p.qty)*(YIELD_FACTORS[ing]||1)),0);
-    const used=bought-qty;
+    // Used = actual consumption from sales + samples after baseline
+    const used=consumed[ing]||0;
     return`<div class="stock-row"><div style="flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:500;color:var(--obsidian)">${ING_LABELS[ing]}</span><span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${color}20;color:${color}">${label}</span></div><div style="font-size:11px;color:var(--corteza);margin-top:3px">Used: ${fmtQty(ing,used)} · Bought: ${fmtQty(ing,bought)}</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:500;color:${color}">${fmtQty(ing,qty)}</div><div style="font-size:10px;color:var(--corteza)">remaining</div></div></div>`;
   }
 
