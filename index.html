@@ -86,7 +86,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
 .it-sub{font-size:10px;color:var(--corteza);margin-top:3px}
 .chart-wrap{position:relative;width:100%}
 .price-ref{background:var(--miga);border-radius:12px;padding:14px;margin-bottom:12px}
-.price-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--harina);font-size:13px}
+.price-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--harina);font-size:13px}.recipe-row{display:grid;grid-template-columns:1fr 80px 80px;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--harina);font-size:13px}.recipe-row span:nth-child(2),.recipe-row span:nth-child(3){text-align:right}
 .price-row:last-child{border-bottom:none}
 .price-name{color:var(--corteza)}.price-val{font-weight:500}
 .legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
@@ -1238,20 +1238,20 @@ function renderRecipeTable(){
     if(PACKAGING_ITEMS.includes(ing)) return qty+' unit'+(qty===1?'':'s');
     return qty+'g';
   };
-  let html='<div style="font-size:11px;font-weight:500;color:var(--corteza);display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--harina)"><span>Item</span><span>Grande</span><span>Pequeño</span></div>';
+  let html='<div class="recipe-row" style="font-size:11px;font-weight:500;color:var(--corteza)"><span>Item</span><span>Grande</span><span>Pequeño</span></div>';
   html+='<div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);padding:6px 0 2px">INGREDIENTS</div>';
   ING_ITEMS.forEach(ing=>{
     const g=RECIPE.grande[ing]||0;
     const p=RECIPE.pequeno[ing]||0;
     const yf=YIELD_FACTORS[ing]||1;
     const yieldNote=yf<1?' <span style="font-size:10px;color:var(--corteza)">('+Math.round(yf*100)+'% yield)</span>':'';
-    html+=`<div class="price-row"><span>${ING_LABELS[ing]}${yieldNote}</span><span>${fmtQty(ing,g)}</span><span>${fmtQty(ing,p)}</span></div>`;
+    html+=`<div class="recipe-row"><span>${ING_LABELS[ing]}${yieldNote}</span><span>${fmtQty(ing,g)}</span><span>${fmtQty(ing,p)}</span></div>`;
   });
   html+='<div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);padding:8px 0 2px">PACKAGING</div>';
   PACKAGING_ITEMS.forEach(ing=>{
     const g=RECIPE.grande[ing]||0;
     const p=RECIPE.pequeno[ing]||0;
-    html+=`<div class="price-row"><span>${ING_LABELS[ing]}</span><span>${fmtQty(ing,g)}</span><span>${fmtQty(ing,p)}</span></div>`;
+    html+=`<div class="recipe-row"><span>${ING_LABELS[ing]}</span><span>${fmtQty(ing,g)}</span><span>${fmtQty(ing,p)}</span></div>`;
   });
   el.innerHTML=html;
 }
