@@ -154,7 +154,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
       </div>
       <div class="form-row-2">
         <div class="form-group"><label>Units</label><input type="number" id="s-units" min="1" value="1" inputmode="numeric" oninput="autoFill()"></div>
-        <div class="form-group"><label>Revenue (COP)</label><input type="number" id="s-amount" inputmode="numeric"></div>
+        <div class="form-group"><label>Revenue (COP)</label><input type="number" id="s-amount" inputmode="decimal"></div>
       </div>
       <div class="form-row-2">
         <div class="form-group"><label>Channel</label>
@@ -185,7 +185,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
         </div>
         <div class="form-group"><label>Date</label><input type="date" id="e-date"></div>
       </div>
-      <div class="form-group"><label>Amount (COP)</label><input type="number" id="e-amount" placeholder="0" inputmode="numeric"></div>
+      <div class="form-group"><label>Amount (COP)</label><input type="number" id="e-amount" placeholder="0" inputmode="decimal"></div>
       <div class="form-group"><label>Note (optional)</label><input type="text" id="e-note" placeholder="e.g. Metro Laureles"></div>
       <button class="btn-primary" id="btn-expense" onclick="logExpense()">Log expense</button>
     </div>
@@ -200,8 +200,8 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
     </div>
     <div class="card">
       <div class="card-title">Monthly targets</div>
-      <div class="form-group"><label>Revenue target (COP)</label><input type="number" id="t-revenue" value="1500000" inputmode="numeric"></div>
-      <div class="form-group"><label>Profit target (COP)</label><input type="number" id="t-profit" value="1000000" inputmode="numeric"></div>
+      <div class="form-group"><label>Revenue target (COP)</label><input type="number" id="t-revenue" value="1500000" inputmode="decimal"></div>
+      <div class="form-group"><label>Profit target (COP)</label><input type="number" id="t-profit" value="1000000" inputmode="decimal"></div>
     </div>
     <div class="card" style="background:var(--miga);border:none">
       <div class="card-title">COGS already includes (do not log as expense)</div>
@@ -243,10 +243,6 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
     <div class="card-title">Sales by product</div>
     <div class="chart-wrap" style="height:180px"><canvas id="product-chart"></canvas></div>
   </div>
-</div>
-
-<!-- HISTORY -->
-<div id="history" class="section">
   <div class="card">
     <div class="card-title">Month to month</div>
     <div class="legend"><span><span class="ldot" style="background:#3266ad"></span>Revenue</span><span><span class="ldot" style="background:#2a9d6e"></span>Profit</span></div>
@@ -359,7 +355,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
       </select>
     </div>
     <div class="form-row-2">
-      <div class="form-group"><label id="ing-qty-label">Quantity bought</label><input type="number" id="ing-qty" placeholder="e.g. 1000" inputmode="numeric"></div>
+      <div class="form-group"><label id="ing-qty-label">Quantity bought</label><input type="number" id="ing-qty" placeholder="e.g. 1000" inputmode="decimal"></div>
       <div class="form-group"><label>Unit</label>
         <select id="ing-unit">
           <option value="g">Grams (g)</option>
@@ -368,7 +364,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
         </select>
       </div>
     </div>
-    <div class="form-group"><label>Total paid (COP)</label><input type="number" id="ing-cost" placeholder="0" inputmode="numeric"></div>
+    <div class="form-group"><label>Total paid (COP)</label><input type="number" id="ing-cost" placeholder="0" inputmode="decimal"></div>
     <div class="form-group"><label>Date</label><input type="date" id="ing-date"></div>
     <button class="btn-primary btn-panela" id="btn-ing" onclick="logIngredient()">Log purchase</button>
   </div>
@@ -377,18 +373,8 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
     <div id="r-prices-table"><div class="empty">Loading...</div></div>
   </div>
   <div class="card">
-    <div class="card-title">Recipe quantities per loaf</div>
-    <div style="font-size:11px;font-weight:500;color:var(--corteza);display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--harina)"><span>Item</span><span>Grande</span><span>Pequeño</span></div>
-    <div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);padding:6px 0 2px">INGREDIENTS</div>
-    <div class="price-row"><span>Bananas <span style="font-size:10px;color:var(--corteza)">(usable 65%)</span></span><span>400g</span><span>200g</span></div>
-    <div class="price-row"><span>Harina</span><span>175g</span><span>88g</span></div>
-    <div class="price-row"><span>Butter</span><span>115g</span><span>58g</span></div>
-    <div class="price-row"><span>Panela</span><span>150g</span><span>75g</span></div>
-    <div class="price-row"><span>Canela</span><span>3g</span><span>1.5g</span></div>
-    <div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);padding:8px 0 2px">PACKAGING</div>
-    <div class="price-row"><span>Caja</span><span>1 unit</span><span>1 unit</span></div>
-    <div class="price-row"><span>Sticker</span><span>1 unit</span><span>1 unit</span></div>
-    <div class="price-row"><span>Tarjeta</span><span>1 unit</span><span>0 units</span></div>
+    <div class="card-title">Quantities per loaf</div>
+    <div id="recipe-table"></div>
     <div style="font-size:10px;color:var(--corteza);margin-top:8px;font-style:italic">Recipe based on your original cost sheet.</div>
   </div>
   <div class="card">
@@ -396,7 +382,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
     <div class="entries-scroll" id="r-history"><div class="empty">Loading...</div></div>
   </div>
   <div class="card" style="background:var(--obsidian);border-color:var(--obsidian)">
-    <div class="card-title" style="color:var(--corteza)">Real vs fixed COGS</div>
+    <div class="card-title" style="color:var(--corteza)">Fixed vs real COGS</div>
     <div style="font-size:13px">
       <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28"><span style="color:var(--corteza)">Fixed — Pan Grande</span><span style="color:var(--masa)">$13,795</span></div>
       <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #2A2A28"><span style="color:var(--corteza)">Real — Pan Grande</span><span id="r-real-grande" style="color:var(--panela)">$—</span></div>
@@ -435,14 +421,14 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
     <div style="font-size:12px;color:var(--corteza);margin-bottom:14px">Enter your physical count right now. This becomes the new baseline — all future sales, purchases and samples will be tracked from this point.</div>
     <div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);margin-bottom:8px">INGREDIENTS</div>
     <div class="form-row-2">
-      <div class="form-group"><label>Bananas (g whole)</label><input type="number" id="bl-bananas" placeholder="0" inputmode="numeric"></div>
-      <div class="form-group"><label>Harina (g)</label><input type="number" id="bl-harina" placeholder="0" inputmode="numeric"></div>
+      <div class="form-group"><label>Bananas (g whole)</label><input type="number" id="bl-bananas" placeholder="0" inputmode="decimal"></div>
+      <div class="form-group"><label>Harina (g)</label><input type="number" id="bl-harina" placeholder="0" inputmode="decimal"></div>
     </div>
     <div class="form-row-2">
-      <div class="form-group"><label>Butter (g)</label><input type="number" id="bl-butter" placeholder="0" inputmode="numeric"></div>
-      <div class="form-group"><label>Panela (g)</label><input type="number" id="bl-panela" placeholder="0" inputmode="numeric"></div>
+      <div class="form-group"><label>Butter (g)</label><input type="number" id="bl-butter" placeholder="0" inputmode="decimal"></div>
+      <div class="form-group"><label>Panela (g)</label><input type="number" id="bl-panela" placeholder="0" inputmode="decimal"></div>
     </div>
-    <div class="form-group"><label>Canela (g)</label><input type="number" id="bl-canela" placeholder="0" inputmode="numeric"></div>
+    <div class="form-group"><label>Canela (g)</label><input type="number" id="bl-canela" placeholder="0" inputmode="decimal"></div>
     <div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);margin:12px 0 8px">PACKAGING</div>
     <div class="form-row-2">
       <div class="form-group"><label>Cajas Grandes (units)</label><input type="number" id="bl-caja_grande" placeholder="0" inputmode="numeric"></div>
@@ -480,9 +466,6 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
   <button class="nav-btn" onclick="switchTab('overview',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>Overview
   </button>
-  <button class="nav-btn" onclick="switchTab('history',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>History
-  </button>
   <button class="nav-btn" onclick="switchTab('insights',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a7 7 0 017 7c0 2.5-1.5 4.5-3 6l-1 3H9l-1-3C6.5 13.5 5 11.5 5 9a7 7 0 017-7z"/><path d="M9 18h6M10 21h4"/></svg>Insights
   </button>
@@ -502,6 +485,14 @@ body{font-family:'Montserrat',sans-serif;background:var(--masa);color:var(--obsi
     <div class="modal-title">SELECT MONTH</div>
     <div id="month-options"></div>
     <button class="modal-cancel" onclick="closeMonthModal()">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-title" id="confirm-text">Confirm?</div>
+    <button class="btn-primary" style="background:var(--danger);color:var(--masa);margin-bottom:8px" id="confirm-yes">Delete</button>
+    <button class="modal-cancel" id="confirm-no">Cancel</button>
   </div>
 </div>
 
@@ -553,11 +544,35 @@ let dailyChart,productChart,monthlyChart,channelChart,marginChart,expenseChart;
 
 // ── UTILITIES ────────────────────────────────────────────────────────────────
 function today(){return new Date().toISOString().slice(0,10);}
+function genId(){return Date.now()+'_'+Math.random().toString(36).slice(2,7);}
 function fmt(n){return '$'+Math.round(n).toLocaleString('es-CO');}
 function getMonthLabel(m){const[y,mo]=m.split('-');return MONTH_NAMES[parseInt(mo)-1]+' '+y;}
 function setSyncStatus(s){const d=document.getElementById('sync-dot');d.className='sync-dot '+s;}
 function toast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
 function destroyChart(c){if(c){try{c.destroy();}catch(e){}}}
+
+function openConfirm(text){
+  return new Promise(resolve=>{
+    const bg=document.getElementById('confirm-modal');
+    document.getElementById('confirm-text').textContent=text;
+    const yes=document.getElementById('confirm-yes');
+    const no=document.getElementById('confirm-no');
+    const cleanup=(val)=>{
+      bg.classList.remove('open');
+      yes.removeEventListener('click',onYes);
+      no.removeEventListener('click',onNo);
+      bg.removeEventListener('click',onBg);
+      resolve(val);
+    };
+    const onYes=()=>cleanup(true);
+    const onNo=()=>cleanup(false);
+    const onBg=(e)=>{if(e.target===bg) cleanup(false);};
+    yes.addEventListener('click',onYes);
+    no.addEventListener('click',onNo);
+    bg.addEventListener('click',onBg);
+    bg.classList.add('open');
+  });
+}
 
 // ── API ──────────────────────────────────────────────────────────────────────
 async function apiCall(params){
@@ -584,9 +599,11 @@ async function loadEntries(){
       product:String(e.product||''),
       channel:String(e.channel||'')
     })):[];
+    persistLocal();
     setSyncStatus('ok');
     return true;
   }catch(err){
+    console.warn('loadEntries failed',err);
     setSyncStatus('err');
     entries=JSON.parse(localStorage.getItem('seb_local')||'[]');
     toast('Offline — showing local data',3000);
@@ -601,10 +618,15 @@ async function insertEntry(entry){
     setSyncStatus('ok');
     return true;
   }catch(err){
+    console.warn('insertEntry failed',err);
     setSyncStatus('err');
     toast('Save error — check connection',3000);
     return false;
   }
+}
+
+function persistLocal(){
+  try{localStorage.setItem('seb_local',JSON.stringify(entries));}catch(e){console.warn('localStorage write failed',e);}
 }
 
 async function deleteEntryApi(id){
@@ -614,6 +636,7 @@ async function deleteEntryApi(id){
     setSyncStatus('ok');
     return true;
   }catch(err){
+    console.warn('deleteEntryApi failed',err);
     setSyncStatus('err');
     return false;
   }
@@ -724,15 +747,21 @@ document.getElementById('smp-date').value=today();
 
 
 async function init(){
-  autoFill();
-  await loadEntries();
-  await loadBaseline();
-  selectedMonth=today().slice(0,7);
-  document.getElementById('month-btn').textContent=getMonthLabel(selectedMonth);
-  const ls=document.getElementById('loading');
-  ls.style.opacity='0';
-  setTimeout(()=>ls.style.display='none',400);
-  renderOverview();
+  try{
+    autoFill();
+    await loadEntries();
+    await loadBaseline();
+    selectedMonth=today().slice(0,7);
+    document.getElementById('month-btn').textContent=getMonthLabel(selectedMonth);
+    renderOverview();
+  }catch(err){
+    console.error('init failed',err);
+    toast('Load error — check connection',3500);
+  }finally{
+    const ls=document.getElementById('loading');
+    ls.style.opacity='0';
+    setTimeout(()=>ls.style.display='none',400);
+  }
 }
 init();
 
@@ -769,7 +798,6 @@ function switchTab(tab,btn){
   document.getElementById(tab).classList.add('active');
   btn.classList.add('active');
   if(tab==='overview') renderOverview();
-  else if(tab==='history') renderHistory();
   else if(tab==='insights') renderInsights();
   else if(tab==='costs') renderCosts();
   else if(tab==='recipe') renderRecipe();
@@ -798,6 +826,10 @@ function selectMonth(m){
   closeMonthModal();
   const t=document.querySelector('.section.active')?.id;
   if(t==='overview') renderOverview();
+  else if(t==='insights') renderInsights();
+  else if(t==='costs') renderCosts();
+  else if(t==='recipe') renderRecipe();
+  else if(t==='stock') renderStock();
 }
 
 // ── LOG FUNCTIONS ─────────────────────────────────────────────────────────────
@@ -806,33 +838,32 @@ async function logSale(){
   const prod=document.getElementById('s-product').value;
   const units=parseInt(document.getElementById('s-units').value)||1;
   const amount=parseFloat(document.getElementById('s-amount').value)||0;
-  const entry={id:Date.now(),type:'sale',date:document.getElementById('s-date').value,
+  const entry={id:genId(),type:'sale',date:document.getElementById('s-date').value,
     product:prod,units,amount,cost:COSTS[prod]*units,
     channel:document.getElementById('s-channel').value,category:'',
     note:document.getElementById('s-note').value};
   btn.disabled=true;btn.textContent='Saving...';
   const ok=await insertEntry(entry);
-  if(ok){entries.unshift(entry);}
+  if(ok){entries.unshift(entry);persistLocal();}
   document.getElementById('s-note').value='';
   document.getElementById('s-units').value=1;autoFill();
   btn.disabled=false;btn.textContent='Log sale';
   toast('Sale logged — '+fmt(amount));
   const t=document.querySelector('.section.active')?.id;
   if(t==='overview') renderOverview();
-  else if(t==='history') renderHistory();
 }
 
 async function logExpense(){
   const btn=document.getElementById('btn-expense');
   const amount=parseFloat(document.getElementById('e-amount').value)||0;
   if(!amount){toast('Enter an amount first');return;}
-  const entry={id:Date.now(),type:'expense',date:document.getElementById('e-date').value,
+  const entry={id:genId(),type:'expense',date:document.getElementById('e-date').value,
     product:'',units:1,amount,cost:0,channel:'',
     category:document.getElementById('e-cat').value,
     note:document.getElementById('e-note').value};
   btn.disabled=true;btn.textContent='Saving...';
   const ok=await insertEntry(entry);
-  if(ok){entries.unshift(entry);}
+  if(ok){entries.unshift(entry);persistLocal();}
   document.getElementById('e-amount').value='';
   document.getElementById('e-note').value='';
   btn.disabled=false;btn.textContent='Log expense';
@@ -850,11 +881,11 @@ async function logIngredient(){
   const isPack=PACKAGING_ITEMS.includes(ingredient);
   // Structured note: "LABEL|key|qty|unit"
   const note=ING_LABELS[ingredient]+'|'+ingredient+'|'+qty+'|'+(isPack?'units':unit);
-  const entry={id:Date.now(),type:'expense',date,product:'',units:1,amount:cost,cost:0,
+  const entry={id:genId(),type:'expense',date,product:'',units:1,amount:cost,cost:0,
     channel:'',category:isPack?'packaging':'ingredients',note};
   btn.disabled=true;btn.textContent='Saving...';
   const ok=await insertEntry(entry);
-  if(ok){entries.unshift(entry);}
+  if(ok){entries.unshift(entry);persistLocal();}
   document.getElementById('ing-qty').value='';
   document.getElementById('ing-cost').value='';
   btn.disabled=false;btn.textContent='Log purchase';
@@ -868,16 +899,23 @@ async function logSample(){
   const units=parseInt(document.getElementById('smp-units').value)||1;
   const date=document.getElementById('smp-date').value;
   const cafe=document.getElementById('smp-note').value;
+  // Samples accounting: logged as an operational expense at COGS cost.
+  // - amount = costPerUnit * units → this is the only place sample cost hits profit.
+  // - category 'samples' is NOT in COGS_CATS, so it IS subtracted from profit as ops expense.
+  // - Stock tab deducts the ingredient quantities from inventory based on this entry.
+  // - When you later buy replacement ingredients, those are logged in category 'ingredients'
+  //   which IS in COGS_CATS and therefore excluded from profit (avoiding double-counting).
+  // - Net effect: each sample reduces profit by exactly one unit of COGS. Correct.
   const costPerUnit=product==='grande'?13795:6077;
   const totalCost=costPerUnit*units;
   const label='Sample '+(product==='grande'?'Pan Grande':'Pan Pequeño')+(cafe?' — '+cafe:'');
   // Structured note: "label|product|units"
   const note=label+'|'+product+'|'+units;
-  const entry={id:Date.now(),type:'expense',date,product:'',units,amount:totalCost,cost:0,
+  const entry={id:genId(),type:'expense',date,product:'',units,amount:totalCost,cost:0,
     channel:'',category:'samples',note};
   btn.disabled=true;btn.textContent='Saving...';
   const ok=await insertEntry(entry);
-  if(ok){entries.unshift(entry);}
+  if(ok){entries.unshift(entry);persistLocal();}
   document.getElementById('smp-units').value=1;
   document.getElementById('smp-note').value='';
   btn.disabled=false;btn.textContent='Log sample';
@@ -886,10 +924,17 @@ async function logSample(){
 }
 
 async function deleteEntry(id){
-  if(!confirm('Delete this entry?')) return;
+  const confirmed=await openConfirm('Delete this entry?');
+  if(!confirmed) return;
   const ok=await deleteEntryApi(id);
   if(ok) entries=entries.filter(e=>String(e.id)!==String(id));
-  renderHistory();
+  persistLocal();
+  const t=document.querySelector('.section.active')?.id;
+  if(t==='overview') renderOverview();
+  else if(t==='recipe') renderRecipe();
+  else if(t==='insights') renderInsights();
+  else if(t==='costs') renderCosts();
+  else if(t==='stock') renderStock();
   toast('Deleted');
 }
 
@@ -902,10 +947,10 @@ function monthData(month){
   const revenue=sales.reduce((s,e)=>s+e.amount,0);
   const cogs=sales.reduce((s,e)=>s+e.cost,0);
   const grossProfit=revenue-cogs;
-  const expTotal=exps.reduce((s,e)=>s+e.amount,0);
   const otherExp=exps.filter(e=>!COGS_CATS.includes(e.category)).reduce((s,e)=>s+e.amount,0);
   const profit=grossProfit-otherExp;
   const margin=revenue>0?profit/revenue*100:0;
+  const expTotal=exps.reduce((s,e)=>s+e.amount,0);
   return{sales,expenses:exps,revenue,cogs,grossProfit,expTotal,otherExp,profit,margin};
 }
 
@@ -944,27 +989,29 @@ function renderOverview(){
   d.sales.forEach(e=>{prodMap[e.product]=(prodMap[e.product]||0)+e.amount;});
   destroyChart(productChart);
   if(Object.keys(prodMap).length) productChart=new Chart(document.getElementById('product-chart'),{type:'doughnut',data:{labels:Object.keys(prodMap).map(k=>PROD_LABELS[k]),datasets:[{data:Object.values(prodMap),backgroundColor:['#3266ad','#2a9d6e','#e09f3e','#c94040']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10}}}}});
-}
 
-// ── RENDER: HISTORY ──────────────────────────────────────────────────────────
-function renderHistory(){
+  // Month-to-month chart (was History tab)
   const months=getMonths();
   destroyChart(monthlyChart);
   monthlyChart=new Chart(document.getElementById('monthly-chart'),{type:'bar',data:{labels:months.map(getMonthLabel),datasets:[
     {label:'Revenue',data:months.map(m=>monthData(m).revenue),backgroundColor:'#3266ad',borderRadius:3},
     {label:'Profit',data:months.map(m=>monthData(m).profit),backgroundColor:'#2a9d6e',borderRadius:3}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v,font:{size:10}}}}}});
+
+  // All entries list (was History tab)
   const sorted=[...entries].sort((a,b)=>b.date.localeCompare(a.date));
   const el=document.getElementById('all-entries');
-  if(!sorted.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>No entries yet.</div>';return;}
-  el.innerHTML=sorted.map(e=>{
-    const isExp=e.type==='expense';
-    const label=isExp?(CAT_LABELS[e.category]||e.category||'Expense'):(PROD_LABELS[e.product]||e.product||'Sale');
-    const dotClass=isExp?'dot-expense':e.product.includes('wholesale')?'dot-wholesale':e.product.includes('grande')?'dot-grande':'dot-pequeno';
-    // For display, show clean note (strip structured data)
-    const displayNote=e.note.includes('|')?e.note.split('|')[0]:e.note;
-    return`<div class="entry-item"><span class="entry-dot ${dotClass}"></span><div class="entry-info"><div class="entry-name">${displayNote||label}</div><div class="entry-meta">${label} · ${e.date.slice(5)}</div></div><span class="entry-amount ${isExp?'e-neg':'e-pos'}">${isExp?'-':'+'}${fmt(e.amount)}</span><button class="btn-del" onclick="deleteEntry('${e.id}')">×</button></div>`;
-  }).join('');
+  if(!sorted.length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>No entries yet.</div>';
+  } else {
+    el.innerHTML=sorted.map(e=>{
+      const isExp=e.type==='expense';
+      const label=isExp?(CAT_LABELS[e.category]||e.category||'Expense'):(PROD_LABELS[e.product]||e.product||'Sale');
+      const dotClass=isExp?'dot-expense':e.product.includes('wholesale')?'dot-wholesale':e.product.includes('grande')?'dot-grande':'dot-pequeno';
+      const displayNote=e.note.includes('|')?e.note.split('|')[0]:e.note;
+      return`<div class="entry-item"><span class="entry-dot ${dotClass}"></span><div class="entry-info"><div class="entry-name">${displayNote||label}</div><div class="entry-meta">${label} · ${e.date.slice(5)}</div></div><span class="entry-amount ${isExp?'e-neg':'e-pos'}">${isExp?'-':'+'}${fmt(e.amount)}</span><button class="btn-del" onclick="deleteEntry('${e.id}')">×</button></div>`;
+    }).join('');
+  }
 }
 
 // ── RENDER: INSIGHTS ─────────────────────────────────────────────────────────
@@ -1116,9 +1163,11 @@ function renderCosts(){
   const pctEl=document.getElementById('c-ops-pct');
   pctEl.textContent=d.revenue>0?Math.round(d.otherExp/d.revenue*100)+'% of revenue':'—';
 }
-
 // ── RENDER: RECIPE ───────────────────────────────────────────────────────────
 function renderRecipe(){
+  // Render recipe quantity table from RECIPE constant (single source of truth)
+  renderRecipeTable();
+
   // Parse purchases directly from entries — no async, no cache
   const purchases=parseIngredientPurchases(entries);
   const prices=getLatestPrices(purchases);
@@ -1166,7 +1215,7 @@ function renderRecipe(){
     pricesEl.innerHTML=html;
   }
 
-  // History — all purchases, latest first
+  // History — all purchases, latest first, with delete buttons
   const histEl=document.getElementById('r-history');
   if(!purchases.length){
     histEl.innerHTML='<div class="empty"><div class="empty-icon">📈</div>No purchases logged yet.</div>';
@@ -1175,9 +1224,36 @@ function renderRecipe(){
     histEl.innerHTML=sorted.map(p=>{
       const isPack=PACKAGING_ITEMS.includes(p.ingredient);
       const unitLabel=isPack?fmt(Math.round(p.cost/p.qty))+'/unit':fmt(Math.round(p.cost/(p.unit==='kg'?p.qty:p.qty/1000)))+'/kg';
-      return`<div class="entry-item"><span class="entry-dot" style="background:${isPack?'var(--panela)':'var(--success)'}"></span><div class="entry-info"><div class="entry-name">${ING_LABELS[p.ingredient]||p.ingredient} — ${p.qty} ${isPack?'units':p.unit}</div><div class="entry-meta">${p.date.slice(5)} · ${unitLabel}</div></div><span class="entry-amount e-neg">${fmt(p.cost)}</span></div>`;
+      return`<div class="entry-item"><span class="entry-dot" style="background:${isPack?'var(--panela)':'var(--success)'}"></span><div class="entry-info"><div class="entry-name">${ING_LABELS[p.ingredient]||p.ingredient} — ${p.qty} ${isPack?'units':p.unit}</div><div class="entry-meta">${p.date.slice(5)} · ${unitLabel}</div></div><span class="entry-amount e-neg">${fmt(p.cost)}</span><button class="btn-del" onclick="deleteEntry('${p.id}')">×</button></div>`;
     }).join('');
   }
+}
+
+// Render the per-loaf recipe quantity table from RECIPE constant
+function renderRecipeTable(){
+  const el=document.getElementById('recipe-table');
+  if(!el) return;
+  const fmtQty=(ing,qty)=>{
+    if(qty===0) return '0';
+    if(PACKAGING_ITEMS.includes(ing)) return qty+' unit'+(qty===1?'':'s');
+    return qty+'g';
+  };
+  let html='<div style="font-size:11px;font-weight:500;color:var(--corteza);display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--harina)"><span>Item</span><span>Grande</span><span>Pequeño</span></div>';
+  html+='<div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);padding:6px 0 2px">INGREDIENTS</div>';
+  ING_ITEMS.forEach(ing=>{
+    const g=RECIPE.grande[ing]||0;
+    const p=RECIPE.pequeno[ing]||0;
+    const yf=YIELD_FACTORS[ing]||1;
+    const yieldNote=yf<1?' <span style="font-size:10px;color:var(--corteza)">('+Math.round(yf*100)+'% yield)</span>':'';
+    html+=`<div class="price-row"><span>${ING_LABELS[ing]}${yieldNote}</span><span>${fmtQty(ing,g)}</span><span>${fmtQty(ing,p)}</span></div>`;
+  });
+  html+='<div style="font-size:10px;letter-spacing:0.08em;color:var(--corteza);padding:8px 0 2px">PACKAGING</div>';
+  PACKAGING_ITEMS.forEach(ing=>{
+    const g=RECIPE.grande[ing]||0;
+    const p=RECIPE.pequeno[ing]||0;
+    html+=`<div class="price-row"><span>${ING_LABELS[ing]}</span><span>${fmtQty(ing,g)}</span><span>${fmtQty(ing,p)}</span></div>`;
+  });
+  el.innerHTML=html;
 }
 
 // ── BASELINE ─────────────────────────────────────────────────────────────────
@@ -1204,6 +1280,7 @@ async function loadBaseline(){
         'No baseline set — enter your current stock count below';
     }
   } catch(err) {
+    console.warn('loadBaseline failed',err);
     baseline = null;
     document.getElementById('inv-baseline-sub').textContent = 'Could not load baseline';
   }
@@ -1235,7 +1312,8 @@ async function saveBaseline(){
     toast('Stock count saved — baseline updated');
     renderStock();
   } catch(err) {
-    toast('Save failed — check connection');
+    console.warn('saveBaseline failed',err);
+    toast('Save error — check connection');
   }
   btn.disabled = false; btn.textContent = 'Save stock count';
 }
@@ -1244,11 +1322,6 @@ async function saveBaseline(){
 function renderStock(){
   // If no baseline, show empty state
   if(!baseline){
-    document.getElementById('inv-status').textContent = 'No baseline set';
-    document.getElementById('inv-status').style.color = 'var(--corteza)';
-    document.getElementById('inv-ok').textContent = '—';
-    document.getElementById('inv-low').textContent = '—';
-    document.getElementById('inv-out').textContent = '—';
     document.getElementById('inv-ingredients').innerHTML = '<div class="empty">Enter your current stock count below and save it to start tracking.</div>';
     document.getElementById('inv-packaging').innerHTML = '<div class="empty">Enter your current stock count below and save it to start tracking.</div>';
     return;
@@ -1347,12 +1420,30 @@ function renderStock(){
   document.getElementById('inv-grande-count').textContent=grandeResult.count;
   document.getElementById('inv-pequeno-count').textContent=pequenoResult.count;
 
-  // Limiting ingredient message
+  // Limiting ingredient message with what-to-buy hint when nothing can be baked
   const limitingIng=grandeResult.limiting;
   const limitingQty=limitingIng?Math.max(0,Math.round(stock[limitingIng]||0)):0;
   const limitingNeeded=limitingIng?RECIPE.grande[limitingIng]:0;
   const limitingEl=document.getElementById('inv-limiting');
-  if(grandeResult.count===0&&limitingIng){
+  if(grandeResult.count===0&&pequenoResult.count===0){
+    // List every ingredient we don't have enough of for one grande
+    const missing=[];
+    Object.entries(RECIPE.grande).forEach(([ing,qty])=>{
+      if(qty===0) return;
+      const have=Math.max(0,stock[ing]||0);
+      if(have<qty){
+        const isPack=PACKAGING_ITEMS.includes(ing);
+        const need=qty-have;
+        const needStr=isPack?Math.ceil(need)+' units':need>=1000?(need/1000).toFixed(2)+'kg':Math.ceil(need)+'g';
+        missing.push((ING_LABELS[ing]||ing)+' ('+needStr+')');
+      }
+    });
+    if(missing.length){
+      limitingEl.innerHTML='To bake 1 grande, buy: <span style="color:var(--warning)">'+missing.join(', ')+'</span>';
+    } else {
+      limitingEl.textContent='Not enough stock';
+    }
+  } else if(grandeResult.count===0&&limitingIng){
     const isPack=PACKAGING_ITEMS.includes(limitingIng);
     const qtyStr=isPack?limitingQty+' units':limitingQty>=1000?(limitingQty/1000).toFixed(2)+'kg':limitingQty+'g';
     const needStr=isPack?limitingNeeded+' units':limitingNeeded+'g';
