@@ -957,20 +957,35 @@ function monthData(month){
 // ── RENDER: OVERVIEW ─────────────────────────────────────────────────────────
 function renderOverview(){
   const d=monthData(selectedMonth);
+
+  // Use real recipe COGS if available, fall back to fixed COGS per unit
+  const allPurchases=parseIngredientPurchases(entries);
+  const prices=getLatestPrices(allPurchases);
+  function getRealUnit(prod){
+    const base=prod.includes('grande')?'grande':'pequeno';
+    const r=calcRealCost(base,prices);
+    if(r.complete) return r.total;
+    return prod.includes('grande')?13795:6077;
+  }
+  const realTotalCogs=Math.round(d.sales.reduce((s,e)=>s+getRealUnit(e.product)*e.units,0));
+  const realGross=d.revenue-realTotalCogs;
+  const realProfit=realGross-d.otherExp;
+  const realMargin=d.revenue>0?realProfit/d.revenue*100:0;
+
   const tRev=parseFloat(document.getElementById('t-revenue').value)||0;
   const revPct=tRev?Math.min(100,d.revenue/tRev*100):0;
   const cafeRev=d.sales.filter(e=>e.channel==='cafe').reduce((s,e)=>s+e.amount,0);
   document.getElementById('hero-rev').textContent=fmt(d.revenue);
   document.getElementById('hero-sub').textContent=d.sales.length+' transactions · '+d.sales.reduce((s,e)=>s+e.units,0)+' units';
-  document.getElementById('hero-profit').textContent=fmt(d.profit);
-  document.getElementById('hero-profit').className='hs-val '+(d.profit>=0?'hs-pos':'hs-neg');
-  document.getElementById('hero-margin').textContent=Math.round(d.margin)+'%';
+  document.getElementById('hero-profit').textContent=fmt(realProfit);
+  document.getElementById('hero-profit').className='hs-val '+(realProfit>=0?'hs-pos':'hs-neg');
+  document.getElementById('hero-margin').textContent=Math.round(realMargin)+'%';
   document.getElementById('hero-exp').textContent=fmt(d.otherExp);
   document.getElementById('tbar-pct').textContent=Math.round(revPct)+'%';
   document.getElementById('tbar-fill').style.width=revPct+'%';
   document.getElementById('ov-units').textContent=d.sales.reduce((s,e)=>s+e.units,0);
   document.getElementById('ov-avg').textContent=d.sales.length?fmt(d.revenue/d.sales.length):'—';
-  document.getElementById('ov-cogs').textContent=fmt(d.cogs);
+  document.getElementById('ov-cogs').textContent=fmt(realTotalCogs);
   document.getElementById('ov-cafe').textContent=fmt(cafeRev);
   const days={};
   entries.filter(e=>e.date.startsWith(selectedMonth)).forEach(e=>{
@@ -993,9 +1008,15 @@ function renderOverview(){
   // Month-to-month chart (was History tab)
   const months=getMonths();
   destroyChart(monthlyChart);
+  // Use real COGS for monthly profit chart too
+  function realMonthProfit(m){
+    const md=monthData(m);
+    const rc=Math.round(md.sales.reduce((s,e)=>s+getRealUnit(e.product)*e.units,0));
+    return md.revenue-rc-md.otherExp;
+  }
   monthlyChart=new Chart(document.getElementById('monthly-chart'),{type:'bar',data:{labels:months.map(getMonthLabel),datasets:[
     {label:'Revenue',data:months.map(m=>monthData(m).revenue),backgroundColor:'#3266ad',borderRadius:3},
-    {label:'Profit',data:months.map(m=>monthData(m).profit),backgroundColor:'#2a9d6e',borderRadius:3}
+    {label:'Profit',data:months.map(m=>realMonthProfit(m)),backgroundColor:'#2a9d6e',borderRadius:3}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v,font:{size:10}}}}}});
 
   // All entries list (was History tab)
@@ -1020,7 +1041,15 @@ function renderInsights(){
   const allSales=entries.filter(e=>e.type==='sale');
   const allExp=entries.filter(e=>e.type==='expense');
   const totalRev=allSales.reduce((s,e)=>s+e.amount,0);
-  const totalCogs=allSales.reduce((s,e)=>s+e.cost,0);
+  // Use real COGS for insights if available
+  const iPrices=getLatestPrices(parseIngredientPurchases(entries));
+  function iRealUnit(prod){
+    const base=prod.includes('grande')?'grande':'pequeno';
+    const r=calcRealCost(base,iPrices);
+    if(r.complete) return r.total;
+    return prod.includes('grande')?13795:6077;
+  }
+  const totalCogs=Math.round(allSales.reduce((s,e)=>s+iRealUnit(e.product)*e.units,0));
   const totalOtherExp=allExp.filter(e=>!COGS_CATS.includes(e.category)).reduce((s,e)=>s+e.amount,0);
   const totalProfit=totalRev-totalCogs-totalOtherExp;
   const avgMargin=totalRev>0?totalProfit/totalRev*100:0;
@@ -1038,7 +1067,7 @@ function renderInsights(){
   if(Object.keys(chanMap).length) channelChart=new Chart(document.getElementById('channel-chart'),{type:'doughnut',data:{labels:Object.keys(chanMap).map(k=>CHAN_LABELS[k]||k),datasets:[{data:Object.values(chanMap),backgroundColor:['#3266ad','#2a9d6e','#e09f3e','#7A7060']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10}}}}});
   destroyChart(marginChart);
   marginChart=new Chart(document.getElementById('margin-chart'),{type:'line',data:{labels:months.map(getMonthLabel),datasets:[
-    {label:'Margin',data:months.map(m=>Math.round(monthData(m).margin)),borderColor:'#3266ad',backgroundColor:'rgba(50,102,173,0.08)',fill:true,tension:0.3,pointRadius:4,borderWidth:2},
+    {label:'Margin',data:months.map(m=>{const md=monthData(m);const rc=Math.round(md.sales.reduce((s,e)=>s+iRealUnit(e.product)*e.units,0));const rp=md.revenue-rc-md.otherExp;return md.revenue>0?Math.round(rp/md.revenue*100):0;}),borderColor:'#3266ad',backgroundColor:'rgba(50,102,173,0.08)',fill:true,tension:0.3,pointRadius:4,borderWidth:2},
     {label:'Target',data:months.map(()=>65),borderColor:'#c94040',borderDash:[4,4],pointRadius:0,fill:false,borderWidth:1.5}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}}}}}});
   const catMap={};
